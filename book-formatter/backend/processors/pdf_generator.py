@@ -3,6 +3,7 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER
+import html
 
 TRIM_SIZES = {
     "6x9": (6 * inch, 9 * inch),
@@ -59,9 +60,14 @@ async def generate_pdf(
     for line in lines:
         if line.startswith('# '):
             story.append(PageBreak())
-            story.append(Paragraph(line[2:], chapter_style))
+            story.append(Paragraph(html.escape(line[2:]), chapter_style))
+        elif line.startswith('## '):
+            story.append(Paragraph(html.escape(line[3:]), chapter_style))
         elif line.strip():
-            story.append(Paragraph(line, body_style))
+            try:
+                story.append(Paragraph(html.escape(line), body_style))
+            except Exception:
+                story.append(Paragraph(line.encode('ascii', 'replace').decode(), body_style))
         else:
             story.append(Spacer(1, 12))
 
