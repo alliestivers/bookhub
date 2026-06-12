@@ -1,8 +1,12 @@
 import anthropic
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
-client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+load_dotenv()
+
+def get_client():
+    return anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 def load_system_prompt() -> str:
     prompt_path = Path(__file__).parent.parent / "prompts" / "formatting_system_prompt.txt"
@@ -14,6 +18,7 @@ async def format_manuscript(
     trim_size: str
 ) -> tuple[str, str]:
 
+    client = get_client()
     system_prompt = load_system_prompt()
 
     user_message = f"""Format this manuscript for {format_type} publishing.
