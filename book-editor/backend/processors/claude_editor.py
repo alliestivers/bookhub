@@ -1,0 +1,202 @@
+import anthropic
+import os
+import json
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
+
+REFERENCE_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "reference")
+
+def load_reference(filename: str) -> str:
+    path = os.path.join(REFERENCE_DIR, filename)
+    if os.path.exists(path):
+        return Path(path).read_text()
+    return ""
+
+def get_client():
+    return anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+def build_system_prompt(pass_number: int) -> str:
+    claude_md = load_reference("CLAUDE.md")
+    hard_rules = load_reference("hard-rules.md")
+    voice_guide = load_reference("voice-guide.md")
+    master_names = load_reference("master-names-list.md")
+    series_bible = load_reference("series-bible.md")
+
+    base = f"""You are the editorial AI for the Choose Me Series memoir by Allison Stivers. The following documents define your role, rules, and method. Follow them exactly.
+
+=== CLAUDE.MD ===
+{claude_md}
+
+=== HARD RULES ===
+{hard_rules}
+
+=== VOICE GUIDE ===
+{voice_guide}
+
+=== MASTER NAMES LIST ===
+{master_names}
+
+=== SERIES BIBLE ===
+{series_bible}
+
+CRITICAL OUTPUT RULES:
+- No em dashes (--) or en dashes (-) anywhere in your output. Use periods, commas, or rewrite.
+- Return your response as valid JSON matching the schema specified for this pass.
+- Never invent details not in the manuscript.
+- Never rewrite never-touch items (Kenna letters, gut-punch endings, dark humor, embedded poetry).
+"""
+
+    pass_instructions = {
+        0: """
+=== PASS 0: INGEST ===
+Read the chapter carefully. DO NOT EDIT anything. Produce:
+1. A 250-350 word chapter summary (factual, no interpretation)
+2. All continuity data: character details, ages, dates, locations, physical facts, objects that might recur
+3. Any ambiguities that need Allie's input
+
+Return JSON:
+{
+  "summary": "250-350 word summary",
+  "continuity": "structured notes on characters, dates, locations, objects",
+  "flags": ["list of questions for Allie"],
+  "fixes": []
+}
+""",
+        1: """
+=== PASS 1: DEVELOPMENTAL ===
+Assess structure and pacing. No rewrites. Flags and analysis only. Check:
+- Does the chapter earn its place (reveals something new OR costs something new)?
+- Does the opening hook in the first two lines?
+- Does the ending land? What is its emotional register?
+- Is the reveal/cost distinct from neighboring chapters?
+- Pacing issues?
+
+Return JSON:
+{
+  "summary": "brief structural assessment",
+  "edits_content": "full markdown-formatted analysis with FLAGS only",
+  "flags": ["list of structural issues for Allie"],
+  "fixes": [],
+  "continuity": ""
+}
+""",
+        2: """
+=== PASS 2: LINE EDIT ===
+Prose rhythm, clarity, redundancy, sentence-level craft. Voice guide is law.
+For each change, use format: ORIGINAL / SUGGESTED / WHY
+Classify every item as SUGGEST or FLAG. Never FIX in this pass.
+Never touch: Kenna letters, gut-punch endings, dark humor, embedded poetry/journals.
+
+Return JSON:
+{
+  "summary": "brief line edit summary",
+  "edits_content": "full markdown with SUGGEST and FLAG items in ORIGINAL/SUGGESTED/WHY format",
+  "flags": ["items flagged for Allie that you did not touch"],
+  "fixes": [],
+  "continuity": ""
+}
+""",
+        3: """
+=== PASS 3: CONTINUITY ===
+Check against continuity log, timeline, master names list. Verify:
+- Pseudonyms correct (never reverted to real names)
+- Ages, dates, locations consistent
+- Physical details match earlier chapters
+- Object continuity
+- Callback accuracy
+
+Verified errors = FIX (log it). Ambiguities = FLAG (quote both versions).
+
+Return JSON:
+{
+  "summary": "continuity check summary",
+  "edits_content": "markdown listing all continuity findings",
+  "flags": ["ambiguities requiring Allie's decision"],
+  "fixes": ["verified errors that were corrected, one line each"],
+  "continuity": ""
+}
+""",
+        4: """
+=== PASS 4: COPYEDIT ===
+Mechanical only: typos, punctuation, spelling, formatting consistency.
+Fix autonomously. Log every change. Never reword for style.
+Remove any em dashes or en dashes and log each removal.
+
+Return JSON:
+{
+  "summary": "copyedit summary: X fixes made",
+  "edits_content": "markdown listing every fix made",
+  "flags": [],
+  "fixes": ["every fix made, one line each with original and corrected text"],
+  "continuity": ""
+}
+"""
+    }
+
+    return base + pass_instructions.get(pass_number, "")
+
+async def run_pass(
+    pass_number: int,
+    chapter_file: str,
+    chapter_text: str,
+    prev_chapter_text: str = "",
+    next_chapter_text: str = "",
+    summaries_text: str = "",
+    book_number: int = 1,
+) -> dict:
+
+    client = get_client()
+    system_prompt = build_system_prompt(pass_number)
+
+    user_message = f"""Book: {book_number}
+Chapter file: {chapter_file}
+
+"""
+    if summaries_text:
+        user_message += f"""CHAPTER SUMMARIES (for context):
+{summaries_text[:3000]}
+
+"""
+    if prev_chapter_text:
+        user_message += f"""PREVIOUS CHAPTER (excerpt):
+{prev_chapter_text[:1500]}
+
+"""
+    if next_chapter_text:
+        user_message += f"""NEXT CHAPTER (excerpt):
+{next_chapter_text[:1500]}
+
+"""
+
+    user_message += f"""CHAPTER TO PROCESS:
+{chapter_text}
+
+Return valid JSON only. No em dashes or en dashes anywhere in your response."""
+
+    response = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=8000,
+        system=system_prompt,
+        messages=[{"role": "user", "content": user_message}]
+    )
+
+    raw = response.content[0].text.strip()
+
+    if raw.startswith("```"):
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+    raw = raw.strip()
+
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return {
+            "summary": "Parse error -- raw output returned",
+            "edits_content": raw,
+            "flags": ["JSON parse failed -- review raw output"],
+            "fixes": [],
+            "continuity": "",
+        }
