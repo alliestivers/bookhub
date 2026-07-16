@@ -8,9 +8,11 @@ import StatusPanel from './components/StatusPanel';
 export default function App() {
   const [chapters, setChapters] = useState([]);
   const [selectedChapter, setSelectedChapter] = useState(null);
-  const [passResult, setPassResult] = useState(null);
+  const [passResults, setPassResults] = useState({});
   const [status, setStatus] = useState(null);
   const [view, setView] = useState('upload');
+  const [runningAll, setRunningAll] = useState(false);
+  const [runAllProgress, setRunAllProgress] = useState(null);
 
   async function loadStatus() {
     const res = await fetch('/workspace/status/1');
@@ -23,6 +25,31 @@ export default function App() {
     const data = await res.json();
     setChapters(data.chapters || []);
     if (data.chapters?.length > 0) setView('editor');
+  }
+
+  async function runPass0OnAll(chapterList) {
+    setRunningAll(true);
+    setRunAllProgress({ current: 0, total: chapterList.length, currentName: '' });
+    for (let i = 0; i < chapterList.length; i++) {
+      const ch = chapterList[i];
+      setRunAllProgress({ current: i + 1, total: chapterList.length, currentName: ch.heading || ch.filename });
+      try {
+        const res = await fetch('/pass/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ book_number: 1, pass_number: 0, chapter_filename: ch.filename }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setPassResults(prev => ({ ...prev, [ch.filename]: data }));
+        }
+      } catch (e) {
+        // continue on error
+      }
+    }
+    setRunningAll(false);
+    setRunAllProgress(null);
+    loadStatus();
   }
 
   useEffect(() => {
@@ -63,9 +90,17 @@ export default function App() {
                 <>
                   <PassRunner
                     chapter={selectedChapter}
-                    onResult={(r) => { setPassResult(r); loadStatus(); }}
+                    onRunAll={runningAll ? null : () => runPass0OnAll(chapters)}
+                    runningAll={runningAll}
+                    runAllProgress={runAllProgress}
+                    onResult={(r) => {
+                      setPassResults(prev => ({ ...prev, [selectedChapter.filename]: r }));
+                      loadStatus();
+                    }}
                   />
-                  {passResult && <ResultsViewer result={passResult} />}
+                  {passResults[selectedChapter.filename] && (
+                    <ResultsViewer result={passResults[selectedChapter.filename]} />
+                  )}
                 </>
               ) : (
                 <div className="empty-state">

@@ -16,7 +16,7 @@ const PASS_DESCRIPTIONS = {
   4: 'Mechanical fixes: typos, punctuation, spelling. Logged automatically.',
 };
 
-export default function PassRunner({ chapter, onResult }) {
+export default function PassRunner({ chapter, onResult, onRunAll, runningAll, runAllProgress }) {
   const [passNumber, setPassNumber] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -81,6 +81,23 @@ export default function PassRunner({ chapter, onResult }) {
       {loading && (
         <div className="progress-hint">
           Claude is reading the chapter... this takes 30-90 seconds.
+        </div>
+      )}
+
+      {passNumber === 0 && onRunAll && !loading && (
+        <button
+          className="btn-secondary run-btn"
+          style={{ marginLeft: '0.75rem' }}
+          onClick={onRunAll}
+          disabled={runningAll}
+        >
+          {runningAll ? 'Running All...' : 'Run Pass 0 on All Chapters'}
+        </button>
+      )}
+
+      {runningAll && runAllProgress && (
+        <div className="progress-hint">
+          Ingesting {runAllProgress.currentName} ({runAllProgress.current} of {runAllProgress.total})...
         </div>
       )}
     </div>
