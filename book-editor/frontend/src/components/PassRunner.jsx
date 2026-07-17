@@ -3,17 +3,19 @@ import { useState } from 'react';
 const PASS_LABELS = {
   0: 'Pass 0: Ingest',
   1: 'Pass 1: Developmental',
-  2: 'Pass 2: Line Edit',
-  3: 'Pass 3: Continuity',
+  2: 'Pass 2: Continuity',
+  3: 'Pass 3: Line Edit',
   4: 'Pass 4: Copyedit',
+  5: 'Pass 5: Formatting',
 };
 
 const PASS_DESCRIPTIONS = {
   0: 'Read only. Generates summary, continuity notes, and flags. No edits.',
   1: 'Structure and pacing analysis. Flags only. No rewrites.',
-  2: 'Line-level suggestions. Every change shown as ORIGINAL / SUGGESTED / WHY.',
-  3: 'Continuity check against logs, names list, and timeline.',
+  2: 'Continuity check against logs, names list, and timeline. Run after all chapters are ingested.',
+  3: 'Line-level suggestions. Every change shown as ORIGINAL / SUGGESTED / WHY.',
   4: 'Mechanical fixes: typos, punctuation, spelling. Logged automatically.',
+  5: 'KDP and IngramSpark formatting. Final pass before export.',
 };
 
 export default function PassRunner({ chapter, onResult, onRunAll, runningAll, runAllProgress }) {

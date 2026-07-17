@@ -192,7 +192,7 @@ async def _run_all_background(req: PassRequest, all_chapters: list, job_id: str)
 
 def _update_status(logs_dir, book_number, pass_number, last_chapter):
     status_path = os.path.join(logs_dir, "status.md")
-    pass_names = {0: "Ingest", 1: "Developmental", 2: "Line Edit", 3: "Continuity", 4: "Copyedit"}
+    pass_names = {0: "Ingest", 1: "Developmental", 2: "Continuity", 3: "Line Edit", 4: "Copyedit", 5: "Formatting"}
     with open(status_path, "w", encoding="utf-8") as f:
         f.write(f"""# STATUS
 Current book: {book_number}

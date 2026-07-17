@@ -83,23 +83,7 @@ Return JSON:
 }
 """,
         2: """
-=== PASS 2: LINE EDIT ===
-Prose rhythm, clarity, redundancy, sentence-level craft. Voice guide is law.
-For each change, use format: ORIGINAL / SUGGESTED / WHY
-Classify every item as SUGGEST or FLAG. Never FIX in this pass.
-Never touch: Kenna letters, gut-punch endings, dark humor, embedded poetry/journals.
-
-Return JSON:
-{
-  "summary": "brief line edit summary",
-  "edits_content": "full markdown with SUGGEST and FLAG items in ORIGINAL/SUGGESTED/WHY format",
-  "flags": ["items flagged for Allie that you did not touch"],
-  "fixes": [],
-  "continuity": ""
-}
-""",
-        3: """
-=== PASS 3: CONTINUITY ===
+=== PASS 2: CONTINUITY ===
 Check against continuity log, timeline, master names list. Verify:
 - Pseudonyms correct (never reverted to real names)
 - Ages, dates, locations consistent
@@ -118,6 +102,22 @@ Return JSON:
   "continuity": ""
 }
 """,
+        3: """
+=== PASS 3: LINE EDIT ===
+Prose rhythm, clarity, redundancy, sentence-level craft. Voice guide is law.
+For each change, use format: ORIGINAL / SUGGESTED / WHY
+Classify every item as SUGGEST or FLAG. Never FIX in this pass.
+Never touch: Kenna letters, gut-punch endings, dark humor, embedded poetry/journals.
+
+Return JSON:
+{
+  "summary": "brief line edit summary",
+  "edits_content": "full markdown with SUGGEST and FLAG items in ORIGINAL/SUGGESTED/WHY format",
+  "flags": ["items flagged for Allie that you did not touch"],
+  "fixes": [],
+  "continuity": ""
+}
+""",
         4: """
 === PASS 4: COPYEDIT ===
 Mechanical only: typos, punctuation, spelling, formatting consistency.
@@ -130,6 +130,30 @@ Return JSON:
   "edits_content": "markdown listing every fix made",
   "flags": [],
   "fixes": ["every fix made, one line each with original and corrected text"],
+  "continuity": ""
+}
+""",
+        5: """
+=== PASS 5: FORMATTING ===
+Prepare the chapter for KDP and IngramSpark publication. Apply all formatting rules:
+- Remove all em dashes and en dashes (replace with period, comma, or rewrite)
+- Consistent chapter heading format
+- Scene break markers (use # # # not asterisks)
+- Paragraph indentation consistent (do not use blank lines between paragraphs in print)
+- Dialogue punctuation correct (comma before closing quote if speech tag follows)
+- No double spaces
+- Ellipsis formatted correctly (three dots, space before and after if mid-sentence)
+- Smart quotes consistent
+- No widow/orphan headers (flag if chapter ends with fewer than 3 lines)
+- EPUB accessibility: flag any images or non-text elements that need alt text
+- Log every change made
+
+Return JSON:
+{
+  "summary": "formatting summary: X changes made, ready for KDP/IngramSpark",
+  "edits_content": "the fully formatted chapter text",
+  "flags": ["anything requiring Allie's decision before final export"],
+  "fixes": ["every formatting change made, one line each"],
   "continuity": ""
 }
 """
