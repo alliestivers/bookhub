@@ -1,11 +1,15 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from processors.claude_editor import run_pass
 import os
+import asyncio
 
 router = APIRouter(prefix="/pass")
 
 WORKSPACE = os.path.join(os.path.dirname(__file__), "..", "..", "workspace")
+
+# Shared progress state for run-all jobs
+_run_all_progress = {}
 
 class PassRequest(BaseModel):
     book_number: int = 1
@@ -105,6 +109,86 @@ async def run_editing_pass(req: PassRequest):
         results.append({"chapter": chapter_file, "output": output})
 
     return {"results": results, "pass": req.pass_number}
+
+@router.post("/run-all")
+async def run_all_chapters(req: PassRequest, background_tasks: BackgroundTasks):
+    book_dir = os.path.join(WORKSPACE, f"book-{req.book_number}")
+    chapters_dir = os.path.join(book_dir, "chapters")
+    if not os.path.exists(chapters_dir):
+        raise HTTPException(status_code=400, detail="No chapters found.")
+    all_chapters = sorted([c for c in os.listdir(chapters_dir) if c.endswith(".md")])
+    job_id = f"book{req.book_number}-pass{req.pass_number}"
+    _run_all_progress[job_id] = {"current": 0, "total": len(all_chapters), "current_name": "", "done": False}
+    background_tasks.add_task(_run_all_background, req, all_chapters, job_id)
+    return {"job_id": job_id, "total": len(all_chapters)}
+
+@router.get("/run-all/progress/{job_id}")
+async def get_run_all_progress(job_id: str):
+    return _run_all_progress.get(job_id, {"error": "Job not found"})
+
+async def _run_all_background(req: PassRequest, all_chapters: list, job_id: str):
+    book_dir = os.path.join(WORKSPACE, f"book-{req.book_number}")
+    chapters_dir = os.path.join(book_dir, "chapters")
+    summaries_dir = os.path.join(book_dir, "summaries")
+    edits_dir = os.path.join(book_dir, "edits")
+    logs_dir = os.path.join(book_dir, "logs")
+    for d in [summaries_dir, edits_dir, logs_dir]:
+        os.makedirs(d, exist_ok=True)
+
+    for i, chapter_file in enumerate(all_chapters):
+        _run_all_progress[job_id]["current"] = i + 1
+        _run_all_progress[job_id]["current_name"] = chapter_file
+        chapter_path = os.path.join(chapters_dir, chapter_file)
+        if not os.path.exists(chapter_path):
+            continue
+        try:
+            with open(chapter_path, "r", encoding="utf-8") as f:
+                chapter_text = f.read()
+            prev_text = ""
+            next_text = ""
+            if i > 0:
+                with open(os.path.join(chapters_dir, all_chapters[i - 1]), "r") as f:
+                    prev_text = f.read()[:2000]
+            if i < len(all_chapters) - 1:
+                with open(os.path.join(chapters_dir, all_chapters[i + 1]), "r") as f:
+                    next_text = f.read()[:2000]
+            summaries_text = ""
+            if os.path.exists(summaries_dir):
+                for s in sorted(os.listdir(summaries_dir)):
+                    with open(os.path.join(summaries_dir, s), "r") as f:
+                        summaries_text += f"\n\n--- {s} ---\n" + f.read()
+            output = await run_pass(
+                pass_number=req.pass_number,
+                chapter_file=chapter_file,
+                chapter_text=chapter_text,
+                prev_chapter_text=prev_text,
+                next_chapter_text=next_text,
+                summaries_text=summaries_text,
+                book_number=req.book_number,
+            )
+            if req.pass_number == 0:
+                with open(os.path.join(summaries_dir, chapter_file), "w", encoding="utf-8") as f:
+                    f.write(output.get("summary", ""))
+            if req.pass_number in [1, 2]:
+                edit_path = os.path.join(edits_dir, f"{chapter_file.replace('.md','')}-pass{req.pass_number}.md")
+                with open(edit_path, "w", encoding="utf-8") as f:
+                    f.write(output.get("edits_content", ""))
+            if output.get("fixes"):
+                with open(os.path.join(logs_dir, "decisions-log.md"), "a", encoding="utf-8") as f:
+                    for fix in output["fixes"]:
+                        f.write(f"\n- [{chapter_file}] Pass {req.pass_number}: {fix}")
+            if output.get("flags"):
+                with open(os.path.join(logs_dir, "questions-for-allie.md"), "a", encoding="utf-8") as f:
+                    f.write(f"\n\n## {chapter_file}\n")
+                    for flag in output["flags"]:
+                        f.write(f"\n- {flag}")
+            if req.pass_number == 0 and output.get("continuity"):
+                with open(os.path.join(logs_dir, "continuity-log.md"), "a", encoding="utf-8") as f:
+                    f.write(f"\n\n## {chapter_file}\n{output['continuity']}")
+            _update_status(logs_dir, req.book_number, req.pass_number, chapter_file)
+        except Exception as e:
+            _run_all_progress[job_id]["current_name"] = f"{chapter_file} (error: {str(e)[:50]})"
+    _run_all_progress[job_id]["done"] = True
 
 def _update_status(logs_dir, book_number, pass_number, last_chapter):
     status_path = os.path.join(logs_dir, "status.md")

@@ -27,29 +27,30 @@ export default function App() {
     if (data.chapters?.length > 0) setView('editor');
   }
 
-  async function runPass0OnAll(chapterList) {
+  async function runPass0OnAll() {
     setRunningAll(true);
-    setRunAllProgress({ current: 0, total: chapterList.length, currentName: '' });
-    for (let i = 0; i < chapterList.length; i++) {
-      const ch = chapterList[i];
-      setRunAllProgress({ current: i + 1, total: chapterList.length, currentName: ch.heading || ch.filename });
+    setRunAllProgress({ current: 0, total: 0, currentName: 'Starting...' });
+    const res = await fetch('/pass/run-all', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ book_number: 1, pass_number: 0 }),
+    });
+    if (!res.ok) { setRunningAll(false); return; }
+    const { job_id, total } = await res.json();
+    setRunAllProgress({ current: 0, total, currentName: 'Starting...' });
+    const poll = setInterval(async () => {
       try {
-        const res = await fetch('/pass/run', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ book_number: 1, pass_number: 0, chapter_filename: ch.filename }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setPassResults(prev => ({ ...prev, [ch.filename]: data }));
+        const r = await fetch(`/pass/run-all/progress/${job_id}`);
+        const p = await r.json();
+        setRunAllProgress({ current: p.current, total: p.total, currentName: p.current_name });
+        if (p.done) {
+          clearInterval(poll);
+          setRunningAll(false);
+          setRunAllProgress(null);
+          loadStatus();
         }
-      } catch (e) {
-        // continue on error
-      }
-    }
-    setRunningAll(false);
-    setRunAllProgress(null);
-    loadStatus();
+      } catch (e) { /* keep polling */ }
+    }, 5000);
   }
 
   useEffect(() => {
@@ -90,7 +91,7 @@ export default function App() {
                 <>
                   <PassRunner
                     chapter={selectedChapter}
-                    onRunAll={runningAll ? null : () => runPass0OnAll(chapters)}
+                    onRunAll={runningAll ? null : runPass0OnAll}
                     runningAll={runningAll}
                     runAllProgress={runAllProgress}
                     onResult={(r) => {
