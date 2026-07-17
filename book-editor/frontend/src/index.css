@@ -73,6 +73,8 @@ input[type="file"] { background: var(--surface); border: 1px dashed var(--border
 .chapter-item.kenna { border-left: 3px solid var(--kenna); }
 .ch-heading { font-size: 0.85rem; line-height: 1.3; }
 .ch-meta { color: var(--muted); font-size: 0.75rem; }
+.ch-passes { display: flex; gap: 0.2rem; flex-wrap: wrap; margin-top: 0.2rem; }
+.pass-dot { background: rgba(139,124,248,0.2); border: 1px solid var(--accent); color: var(--accent); font-size: 0.65rem; padding: 0.1rem 0.3rem; border-radius: 3px; font-weight: 600; }
 .muted { color: var(--muted); }
 
 .editor-main { overflow-y: auto; padding: 1.5rem 2rem; }

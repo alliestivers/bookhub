@@ -9,6 +9,7 @@ export default function App() {
   const [chapters, setChapters] = useState([]);
   const [selectedChapter, setSelectedChapter] = useState(null);
   const [passResults, setPassResults] = useState({});
+  const [completedPasses, setCompletedPasses] = useState({});
   const [status, setStatus] = useState(null);
   const [view, setView] = useState('upload');
   const [runningAll, setRunningAll] = useState(false);
@@ -23,8 +24,29 @@ export default function App() {
   async function loadChapters() {
     const res = await fetch('/manuscript/chapters/1');
     const data = await res.json();
-    setChapters(data.chapters || []);
-    if (data.chapters?.length > 0) setView('editor');
+    const chapterList = data.chapters || [];
+    setChapters(chapterList);
+    if (chapterList.length > 0) setView('editor');
+    // Load completed pass info for all chapters
+    const completed = {};
+    await Promise.all(chapterList.map(async (ch) => {
+      const r = await fetch(`/workspace/chapter-results/1/${ch.filename}`);
+      const d = await r.json();
+      if (d.completed_passes?.length > 0) {
+        completed[ch.filename] = d.completed_passes;
+      }
+    }));
+    setCompletedPasses(completed);
+  }
+
+  async function loadChapterResults(chapter) {
+    const r = await fetch(`/workspace/chapter-results/1/${chapter.filename}`);
+    const d = await r.json();
+    if (d.completed_passes?.length > 0) {
+      setCompletedPasses(prev => ({ ...prev, [chapter.filename]: d.completed_passes }));
+      const lastPass = Math.max(...d.completed_passes);
+      setPassResults(prev => ({ ...prev, [chapter.filename]: d.results_by_pass[lastPass] }));
+    }
   }
 
   async function runPass0OnAll() {
@@ -83,7 +105,8 @@ export default function App() {
               <ChapterList
                 chapters={chapters}
                 selected={selectedChapter}
-                onSelect={setSelectedChapter}
+                completedPasses={completedPasses}
+                onSelect={(ch) => { setSelectedChapter(ch); loadChapterResults(ch); }}
               />
             </aside>
             <main className="editor-main">
