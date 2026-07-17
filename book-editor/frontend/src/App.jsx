@@ -27,16 +27,6 @@ export default function App() {
     const chapterList = data.chapters || [];
     setChapters(chapterList);
     if (chapterList.length > 0) setView('editor');
-    // Load completed pass info for all chapters
-    const completed = {};
-    await Promise.all(chapterList.map(async (ch) => {
-      const r = await fetch(`/workspace/chapter-results/1/${ch.filename}`);
-      const d = await r.json();
-      if (d.completed_passes?.length > 0) {
-        completed[ch.filename] = d.completed_passes;
-      }
-    }));
-    setCompletedPasses(completed);
   }
 
   async function loadChapterResults(chapter) {
