@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 import os
+import json
 
 router = APIRouter(prefix="/workspace")
 
@@ -25,6 +26,7 @@ async def get_chapter_results(book_number: int, filename: str):
     book_dir = os.path.join(WORKSPACE, f"book-{book_number}")
     summaries_dir = os.path.join(book_dir, "summaries")
     edits_dir = os.path.join(book_dir, "edits")
+    flags_dir = os.path.join(book_dir, "flags")
     logs_dir = os.path.join(book_dir, "logs")
 
     results_by_pass = {}
@@ -42,11 +44,16 @@ async def get_chapter_results(book_number: int, filename: str):
             if marker in full_cont:
                 section = full_cont.split(marker, 1)[1]
                 continuity = section.split("\n## ")[0].strip()
+        flags = []
+        flag_path = os.path.join(flags_dir, f"{filename.replace('.md','')}-pass0.json")
+        if os.path.exists(flag_path):
+            with open(flag_path, "r") as f:
+                flags = json.loads(f.read())
         results_by_pass[0] = {
             "results": [{"chapter": filename, "output": {
                 "summary": summary_text,
                 "continuity": continuity,
-                "flags": [],
+                "flags": flags,
                 "fixes": [],
                 "edits_content": "",
             }}],
@@ -58,11 +65,16 @@ async def get_chapter_results(book_number: int, filename: str):
         if os.path.exists(edit_path):
             with open(edit_path, "r") as f:
                 content = f.read()
+            flags = []
+            flag_path = os.path.join(flags_dir, f"{filename.replace('.md','')}-pass{pass_num}.json")
+            if os.path.exists(flag_path):
+                with open(flag_path, "r") as f:
+                    flags = json.loads(f.read())
             results_by_pass[pass_num] = {
                 "results": [{"chapter": filename, "output": {
                     "summary": "",
                     "edits_content": content,
-                    "flags": [],
+                    "flags": flags,
                     "fixes": [],
                     "continuity": "",
                 }}],
