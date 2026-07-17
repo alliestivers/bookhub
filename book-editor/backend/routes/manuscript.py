@@ -1,6 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from processors.manuscript_processor import ingest_manuscript, split_chapters, get_chapter_list, get_word_count
 import os
+import shutil
 
 router = APIRouter(prefix="/manuscript")
 
@@ -24,6 +25,8 @@ async def upload_manuscript(
     chapters = split_chapters(text)
 
     chapters_dir = os.path.join(book_dir, "chapters")
+    if os.path.exists(chapters_dir):
+        shutil.rmtree(chapters_dir)
     os.makedirs(chapters_dir, exist_ok=True)
 
     saved = []
