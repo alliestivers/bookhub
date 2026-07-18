@@ -87,14 +87,24 @@ export default function PassRunner({ chapter, onResult, onRunAll, runningAll, ru
       )}
 
       {passNumber === 0 && onRunAll && !loading && (
-        <button
-          className="btn-secondary run-btn"
-          style={{ marginLeft: '0.75rem' }}
-          onClick={onRunAll}
-          disabled={runningAll}
-        >
-          {runningAll ? 'Running All...' : 'Run Pass 0 on All Chapters'}
-        </button>
+        <>
+          <button
+            className="btn-secondary run-btn"
+            style={{ marginLeft: '0.75rem' }}
+            onClick={() => onRunAll(false)}
+            disabled={runningAll}
+          >
+            {runningAll ? 'Running...' : 'Run All Chapters'}
+          </button>
+          <button
+            className="btn-secondary run-btn"
+            style={{ marginLeft: '0.5rem' }}
+            onClick={() => onRunAll(true)}
+            disabled={runningAll}
+          >
+            {runningAll ? 'Running...' : 'Run Remaining Only'}
+          </button>
+        </>
       )}
 
       {runningAll && runAllProgress && (

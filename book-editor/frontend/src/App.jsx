@@ -39,13 +39,13 @@ export default function App() {
     }
   }
 
-  async function runPass0OnAll() {
+  async function runPass0OnAll(skipExisting = false) {
     setRunningAll(true);
     setRunAllProgress({ current: 0, total: 0, currentName: 'Starting...' });
     const res = await fetch('/pass/run-all', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ book_number: 1, pass_number: 0 }),
+      body: JSON.stringify({ book_number: 1, pass_number: 0, skip_existing: skipExisting }),
     });
     if (!res.ok) { setRunningAll(false); return; }
     const { job_id, total } = await res.json();

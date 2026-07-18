@@ -16,6 +16,7 @@ class PassRequest(BaseModel):
     pass_number: int
     chapter_filename: str = ""
     chapter_range: list[str] = []
+    skip_existing: bool = False
 
 @router.post("/run")
 async def run_editing_pass(req: PassRequest):
@@ -122,6 +123,9 @@ async def run_all_chapters(req: PassRequest, background_tasks: BackgroundTasks):
     if not os.path.exists(chapters_dir):
         raise HTTPException(status_code=400, detail="No chapters found.")
     all_chapters = sorted([c for c in os.listdir(chapters_dir) if c.endswith(".md")])
+    if req.skip_existing:
+        summaries_dir = os.path.join(os.path.join(WORKSPACE, f"book-{req.book_number}"), "summaries")
+        all_chapters = [c for c in all_chapters if not os.path.exists(os.path.join(summaries_dir, c))]
     job_id = f"book{req.book_number}-pass{req.pass_number}"
     _run_all_progress[job_id] = {"current": 0, "total": len(all_chapters), "current_name": "", "done": False}
     background_tasks.add_task(_run_all_background, req, all_chapters, job_id)
