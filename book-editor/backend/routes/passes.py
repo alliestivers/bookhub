@@ -65,9 +65,12 @@ async def run_editing_pass(req: PassRequest):
 
         summaries_text = ""
         if os.path.exists(summaries_dir):
-            for s in os.listdir(summaries_dir):
-                with open(os.path.join(summaries_dir, s), "r") as f:
-                    summaries_text += f"\n\n--- {s} ---\n" + f.read()
+            prior_chapters = all_chapters[:idx] if idx >= 0 else all_chapters
+            for s in sorted(prior_chapters):
+                s_path = os.path.join(summaries_dir, s)
+                if os.path.exists(s_path):
+                    with open(s_path, "r") as f:
+                        summaries_text += f"\n\n--- {s} ---\n" + f.read()
 
         output = await run_pass(
             pass_number=req.pass_number,
@@ -164,9 +167,11 @@ async def _run_all_background(req: PassRequest, all_chapters: list, job_id: str)
                     next_text = f.read()[:2000]
             summaries_text = ""
             if os.path.exists(summaries_dir):
-                for s in sorted(os.listdir(summaries_dir)):
-                    with open(os.path.join(summaries_dir, s), "r") as f:
-                        summaries_text += f"\n\n--- {s} ---\n" + f.read()
+                for s in all_chapters[:i]:
+                    s_path = os.path.join(summaries_dir, s)
+                    if os.path.exists(s_path):
+                        with open(s_path, "r") as f:
+                            summaries_text += f"\n\n--- {s} ---\n" + f.read()
             output = await run_pass(
                 pass_number=req.pass_number,
                 chapter_file=chapter_file,

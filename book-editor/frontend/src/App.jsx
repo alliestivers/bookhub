@@ -109,6 +109,11 @@ export default function App() {
                     runAllProgress={runAllProgress}
                     onResult={(r) => {
                       setPassResults(prev => ({ ...prev, [selectedChapter.filename]: r }));
+                      setCompletedPasses(prev => {
+                        const existing = prev[selectedChapter.filename] || [];
+                        const passNum = r.pass;
+                        return { ...prev, [selectedChapter.filename]: [...new Set([...existing, passNum])] };
+                      });
                       loadStatus();
                     }}
                   />
