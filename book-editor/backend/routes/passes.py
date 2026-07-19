@@ -127,8 +127,13 @@ async def run_all_chapters(req: PassRequest, background_tasks: BackgroundTasks):
         raise HTTPException(status_code=400, detail="No chapters found.")
     all_chapters = sorted([c for c in os.listdir(chapters_dir) if c.endswith(".md")])
     if req.skip_existing:
-        summaries_dir = os.path.join(os.path.join(WORKSPACE, f"book-{req.book_number}"), "summaries")
-        all_chapters = [c for c in all_chapters if not os.path.exists(os.path.join(summaries_dir, c))]
+        if req.pass_number == 0:
+            check_dir = os.path.join(WORKSPACE, f"book-{req.book_number}", "summaries")
+            all_chapters = [c for c in all_chapters if not os.path.exists(os.path.join(check_dir, c))]
+        else:
+            edits_dir = os.path.join(WORKSPACE, f"book-{req.book_number}", "edits")
+            all_chapters = [c for c in all_chapters if not os.path.exists(
+                os.path.join(edits_dir, f"{c.replace('.md','')}-pass{req.pass_number}.md"))]
     job_id = f"book{req.book_number}-pass{req.pass_number}"
     _run_all_progress[job_id] = {"current": 0, "total": len(all_chapters), "current_name": "", "done": False}
     background_tasks.add_task(_run_all_background, req, all_chapters, job_id)

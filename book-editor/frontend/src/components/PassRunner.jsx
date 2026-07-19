@@ -86,12 +86,12 @@ export default function PassRunner({ chapter, onResult, onRunAll, runningAll, ru
         </div>
       )}
 
-      {passNumber === 0 && onRunAll && !loading && (
+      {[0, 2].includes(passNumber) && onRunAll && !loading && (
         <>
           <button
             className="btn-secondary run-btn"
             style={{ marginLeft: '0.75rem' }}
-            onClick={() => onRunAll(false)}
+            onClick={() => onRunAll(passNumber, false)}
             disabled={runningAll}
           >
             {runningAll ? 'Running...' : 'Run All Chapters'}
@@ -99,7 +99,7 @@ export default function PassRunner({ chapter, onResult, onRunAll, runningAll, ru
           <button
             className="btn-secondary run-btn"
             style={{ marginLeft: '0.5rem' }}
-            onClick={() => onRunAll(true)}
+            onClick={() => onRunAll(passNumber, true)}
             disabled={runningAll}
           >
             {runningAll ? 'Running...' : 'Run Remaining Only'}
@@ -109,7 +109,7 @@ export default function PassRunner({ chapter, onResult, onRunAll, runningAll, ru
 
       {runningAll && runAllProgress && (
         <div className="progress-hint">
-          Ingesting {runAllProgress.currentName} ({runAllProgress.current} of {runAllProgress.total})...
+          {PASS_LABELS[passNumber]} — {runAllProgress.currentName} ({runAllProgress.current} of {runAllProgress.total})...
         </div>
       )}
     </div>

@@ -39,13 +39,13 @@ export default function App() {
     }
   }
 
-  async function runPass0OnAll(skipExisting = false) {
+  async function runPassOnAll(passNumber = 0, skipExisting = false) {
     setRunningAll(true);
     setRunAllProgress({ current: 0, total: 0, currentName: 'Starting...' });
     const res = await fetch('/pass/run-all', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ book_number: 1, pass_number: 0, skip_existing: skipExisting }),
+      body: JSON.stringify({ book_number: 1, pass_number: passNumber, skip_existing: skipExisting }),
     });
     if (!res.ok) { setRunningAll(false); return; }
     const { job_id, total } = await res.json();
@@ -104,7 +104,7 @@ export default function App() {
                 <>
                   <PassRunner
                     chapter={selectedChapter}
-                    onRunAll={runningAll ? null : runPass0OnAll}
+                    onRunAll={runningAll ? null : runPassOnAll}
                     runningAll={runningAll}
                     runAllProgress={runAllProgress}
                     onResult={(r) => {
