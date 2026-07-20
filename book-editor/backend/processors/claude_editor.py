@@ -55,20 +55,23 @@ Read the chapter carefully. DO NOT EDIT anything. Produce:
 1. A 250-350 word chapter summary (factual, no interpretation)
 2. All continuity data: character details, ages, dates, locations, physical facts, objects that might recur
 
-FLAGS — strict rule: only include a flag if it is a DIRECT QUESTION that Allie must answer before the manuscript can move forward. Maximum 3 flags per chapter.
+FLAGS — strict rule: only include a flag if it is a DIRECT CONTRADICTION or FACTUAL AMBIGUITY that Allie must resolve before the manuscript can move forward. Maximum 2 flags per chapter.
 
-A flag IS: "Chapter 1 says Cole lives near EKU, Chapter 48 places him in Louisville — are these the same person or two different characters?"
-A flag IS NOT: observations, analysis, things you noticed, style notes, or anything that does not require Allie's explicit answer.
-A flag IS NOT: "This is consistent with the series thesis" or "no editorial action needed" — do NOT flag things that are fine.
-A flag IS NOT: questions about real names vs pseudonyms unless there is an actual error in this chapter.
+A flag IS: a direct contradiction between two specific facts in the chapter that cannot be resolved without Allie's input.
+A flag IS NOT: any mention of the series bible, voice guide, or reference documents.
+A flag IS NOT: pseudonym verification questions — the master names list handles that, do not flag names.
+A flag IS NOT: details that "could be callbacks" — log those in continuity notes, never in flags.
+A flag IS NOT: observations about what the series bible should contain or needs updating.
+A flag IS NOT: anything that can be resolved during line edits or continuity pass.
+A flag IS NOT: notes about what reference documents are missing or unpopulated.
 
-If you are not certain Allie needs to answer it before editing, do NOT flag it. Put it in edits_content instead.
+If you are unsure whether it requires Allie's answer, do NOT flag it. Put it in continuity notes instead.
 
 Return JSON:
 {
   "summary": "250-350 word summary",
-  "continuity": "structured notes on characters, dates, locations, objects",
-  "flags": ["only genuine must-answer questions, max 3"],
+  "continuity": "structured notes on characters, dates, locations, objects — log potential callback details here silently",
+  "flags": ["only direct contradictions requiring Allie's decision, max 2"],
   "fixes": []
 }
 """,
@@ -87,13 +90,15 @@ CONTINUITY CHECK (goes in edits_content):
 - Ages, dates, locations consistent with prior chapters
 - Any contradictions between this chapter and prior summaries
 
-FLAGS — strict rule: only flag something if it is a DIRECT QUESTION Allie must answer before line edits can proceed. Maximum 3 flags per chapter.
+FLAGS — strict rule: only flag a VERIFIED CONTRADICTION between two specific facts across chapters that Allie must resolve before line edits. Maximum 2 flags per chapter.
 
-A flag IS: a genuine contradiction between chapters that Allie must resolve ("Chapter 3 says Jade carried Allie up 11 flights, but Chapter 7 says 8 flights — which is correct?")
-A flag IS: a structural decision only Allie can make ("This chapter and Chapter 4 cover the same event from different angles — should one be cut or merged?")
-A flag IS NOT: observations about style, voice, or craft. Put those in edits_content.
-A flag IS NOT: questions about intent or meaning. Put those in edits_content.
-A flag IS NOT: anything that can be addressed during line edits.
+A flag IS: "Chapter 3 says Jade carried Allie up 11 flights, Chapter 7 says 8 flights — which is correct?"
+A flag IS: "This chapter and Chapter 4 describe the same event with different outcomes — should one be cut?"
+A flag IS NOT: pseudonym questions — the master names list handles that.
+A flag IS NOT: series bible or reference document notes.
+A flag IS NOT: style, voice, craft observations — put in edits_content.
+A flag IS NOT: potential callbacks or details to track — put in edits_content.
+A flag IS NOT: anything resolvable during line edits.
 
 Return JSON:
 {
