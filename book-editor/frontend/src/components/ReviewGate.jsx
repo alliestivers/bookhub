@@ -15,6 +15,7 @@ export default function ReviewGate({ gate, onUpdate }) {
   const filteredFlags = filter === 'all' ? flags
     : filter === 'pending' ? flags.filter(f => f.decision === 'pending')
     : filter === 'approved' ? flags.filter(f => f.decision === 'approved')
+    : filter === 'answered' ? flags.filter(f => f.decision === 'answered')
     : flags.filter(f => f.decision === 'rejected');
 
   const byChapter = filteredFlags.reduce((acc, flag) => {
@@ -96,7 +97,7 @@ export default function ReviewGate({ gate, onUpdate }) {
       {flags.length > 0 && (
         <div className="review-filter-bar">
           <span className="review-filter-label">Show:</span>
-          {['pending', 'approved', 'rejected', 'all'].map(f => (
+          {['pending', 'answered', 'approved', 'rejected', 'all'].map(f => (
             <button
               key={f}
               className={`filter-btn ${filter === f ? 'active' : ''}`}
@@ -194,11 +195,18 @@ function FlagItem({ flag, onDecision, disabled }) {
       />
       <div className="flag-item-actions">
         <button
+          className={`decision-btn ${flag.decision === 'answered' ? 'active-answered' : ''}`}
+          onClick={() => handleDecision('answered')}
+          disabled={disabled}
+        >
+          Answered
+        </button>
+        <button
           className={`decision-btn ${flag.decision === 'approved' ? 'active-approve' : ''}`}
           onClick={() => handleDecision('approved')}
           disabled={disabled}
         >
-          Approve
+          Noted
         </button>
         <button
           className={`decision-btn ${flag.decision === 'rejected' ? 'active-reject' : ''}`}

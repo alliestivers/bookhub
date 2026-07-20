@@ -163,3 +163,4 @@ input[type="file"] { background: var(--surface); border: 1px dashed var(--border
 .filter-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; color: var(--muted); cursor: pointer; font-size: 0.8rem; padding: 0.3rem 0.85rem; transition: all 0.15s; }
 .filter-btn:hover { border-color: var(--accent); color: var(--text); }
 .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.decision-btn.active-answered { background: rgba(91,141,238,0.15); border-color: var(--accent2); color: var(--accent2); }

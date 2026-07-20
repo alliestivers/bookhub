@@ -54,40 +54,52 @@ CRITICAL OUTPUT RULES:
 Read the chapter carefully. DO NOT EDIT anything. Produce:
 1. A 250-350 word chapter summary (factual, no interpretation)
 2. All continuity data: character details, ages, dates, locations, physical facts, objects that might recur
-3. Any ambiguities that need Allie's input
+
+FLAGS — strict rule: only include a flag if it is a DIRECT QUESTION that Allie must answer before the manuscript can move forward. Maximum 3 flags per chapter.
+
+A flag IS: "Chapter 1 says Cole lives near EKU, Chapter 48 places him in Louisville — are these the same person or two different characters?"
+A flag IS NOT: observations, analysis, things you noticed, style notes, or anything that does not require Allie's explicit answer.
+A flag IS NOT: "This is consistent with the series thesis" or "no editorial action needed" — do NOT flag things that are fine.
+A flag IS NOT: questions about real names vs pseudonyms unless there is an actual error in this chapter.
+
+If you are not certain Allie needs to answer it before editing, do NOT flag it. Put it in edits_content instead.
 
 Return JSON:
 {
   "summary": "250-350 word summary",
   "continuity": "structured notes on characters, dates, locations, objects",
-  "flags": ["list of questions for Allie"],
+  "flags": ["only genuine must-answer questions, max 3"],
   "fixes": []
 }
 """,
         1: """
 === PASS 1: DEVELOPMENTAL + CONTINUITY ===
-Assess structure, pacing, AND continuity. No rewrites. Flags and analysis only.
+Assess structure, pacing, AND continuity. No rewrites. Put analysis in edits_content.
 
-STRUCTURAL CHECK:
-- Does the chapter earn its place (reveals something new OR costs something new)?
+STRUCTURAL CHECK (goes in edits_content):
+- Does the chapter earn its place?
 - Does the opening hook in the first two lines?
-- Does the ending land? What is its emotional register?
-- Is the reveal/cost distinct from neighboring chapters?
+- Does the ending land?
 - Pacing issues?
 
-CONTINUITY CHECK (cross-reference all prior chapter summaries provided):
-- Pseudonyms correct (never reverted to real names)
+CONTINUITY CHECK (goes in edits_content):
+- Pseudonyms correct
 - Ages, dates, locations consistent with prior chapters
-- Physical details match earlier chapters
-- Object continuity
-- Callback accuracy
-- Flag any contradictions between this chapter and prior summaries
+- Any contradictions between this chapter and prior summaries
+
+FLAGS — strict rule: only flag something if it is a DIRECT QUESTION Allie must answer before line edits can proceed. Maximum 3 flags per chapter.
+
+A flag IS: a genuine contradiction between chapters that Allie must resolve ("Chapter 3 says Jade carried Allie up 11 flights, but Chapter 7 says 8 flights — which is correct?")
+A flag IS: a structural decision only Allie can make ("This chapter and Chapter 4 cover the same event from different angles — should one be cut or merged?")
+A flag IS NOT: observations about style, voice, or craft. Put those in edits_content.
+A flag IS NOT: questions about intent or meaning. Put those in edits_content.
+A flag IS NOT: anything that can be addressed during line edits.
 
 Return JSON:
 {
   "summary": "brief structural and continuity assessment",
-  "edits_content": "full markdown-formatted analysis with structural FLAGS and continuity findings",
-  "flags": ["list of structural and continuity issues requiring Allie's decision"],
+  "edits_content": "full markdown analysis — structural findings, continuity notes, craft observations",
+  "flags": ["only genuine must-answer questions blocking line edits, max 3"],
   "fixes": [],
   "continuity": ""
 }
