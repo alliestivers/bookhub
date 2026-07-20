@@ -98,16 +98,16 @@ async def run_editing_pass(req: PassRequest):
                 for fix in output["fixes"]:
                     f.write(f"\n- [{chapter_file}] Pass {req.pass_number}: {fix}")
 
+        import json as _json
+        flag_path = os.path.join(flags_dir, f"{chapter_file.replace('.md','')}-pass{req.pass_number}.json")
+        with open(flag_path, "w", encoding="utf-8") as f:
+            f.write(_json.dumps(output.get("flags", [])))
         if output.get("flags"):
             questions_path = os.path.join(logs_dir, "questions-for-allie.md")
             with open(questions_path, "a", encoding="utf-8") as f:
                 f.write(f"\n\n## {chapter_file}\n")
                 for flag in output["flags"]:
                     f.write(f"\n- {flag}")
-            flag_path = os.path.join(flags_dir, f"{chapter_file.replace('.md','')}-pass{req.pass_number}.json")
-            import json as _json
-            with open(flag_path, "w", encoding="utf-8") as f:
-                f.write(_json.dumps(output["flags"]))
 
         if req.pass_number == 0 and output.get("continuity"):
             cont_path = os.path.join(logs_dir, "continuity-log.md")
@@ -197,15 +197,15 @@ async def _run_all_background(req: PassRequest, all_chapters: list, job_id: str)
                 with open(os.path.join(logs_dir, "decisions-log.md"), "a", encoding="utf-8") as f:
                     for fix in output["fixes"]:
                         f.write(f"\n- [{chapter_file}] Pass {req.pass_number}: {fix}")
+            import json as _json
+            flag_path = os.path.join(flags_dir, f"{chapter_file.replace('.md','')}-pass{req.pass_number}.json")
+            with open(flag_path, "w", encoding="utf-8") as f:
+                f.write(_json.dumps(output.get("flags", [])))
             if output.get("flags"):
                 with open(os.path.join(logs_dir, "questions-for-allie.md"), "a", encoding="utf-8") as f:
                     f.write(f"\n\n## {chapter_file}\n")
                     for flag in output["flags"]:
                         f.write(f"\n- {flag}")
-                import json as _json
-                flag_path = os.path.join(flags_dir, f"{chapter_file.replace('.md','')}-pass{req.pass_number}.json")
-                with open(flag_path, "w", encoding="utf-8") as f:
-                    f.write(_json.dumps(output["flags"]))
             if req.pass_number == 0 and output.get("continuity"):
                 with open(os.path.join(logs_dir, "continuity-log.md"), "a", encoding="utf-8") as f:
                     f.write(f"\n\n## {chapter_file}\n{output['continuity']}")
