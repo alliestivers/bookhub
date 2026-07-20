@@ -156,3 +156,10 @@ input[type="file"] { background: var(--surface); border: 1px dashed var(--border
 .btn-text { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.85rem; padding: 0; text-decoration: underline; }
 .gate-locked-message { background: rgba(226,160,64,0.08); border: 1px solid rgba(226,160,64,0.25); border-radius: var(--r); color: var(--flag); font-size: 0.9rem; margin-top: 0.5rem; padding: 0.9rem 1rem; }
 .gate-badge { background: var(--flag); border-radius: 10px; color: #000; font-size: 0.7rem; font-weight: 700; margin-left: 0.4rem; padding: 0.1rem 0.45rem; }
+
+/* Review Gate filter bar */
+.review-filter-bar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.review-filter-label { color: var(--muted); font-size: 0.85rem; }
+.filter-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; color: var(--muted); cursor: pointer; font-size: 0.8rem; padding: 0.3rem 0.85rem; transition: all 0.15s; }
+.filter-btn:hover { border-color: var(--accent); color: var(--text); }
+.filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }

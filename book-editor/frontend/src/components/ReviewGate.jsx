@@ -3,6 +3,7 @@ import { useState } from 'react';
 export default function ReviewGate({ gate, onUpdate }) {
   const [expanded, setExpanded] = useState({});
   const [confirming, setConfirming] = useState(false);
+  const [filter, setFilter] = useState('pending');
 
   if (!gate) return <div className="empty-state"><p>Loading review gate...</p></div>;
 
@@ -11,7 +12,12 @@ export default function ReviewGate({ gate, onUpdate }) {
   const reviewed = flags.filter(f => f.decision !== 'pending').length;
   const isComplete = gate.status === 'complete';
 
-  const byChapter = flags.reduce((acc, flag) => {
+  const filteredFlags = filter === 'all' ? flags
+    : filter === 'pending' ? flags.filter(f => f.decision === 'pending')
+    : filter === 'approved' ? flags.filter(f => f.decision === 'approved')
+    : flags.filter(f => f.decision === 'rejected');
+
+  const byChapter = filteredFlags.reduce((acc, flag) => {
     if (!acc[flag.chapter]) acc[flag.chapter] = [];
     acc[flag.chapter].push(flag);
     return acc;
@@ -87,6 +93,21 @@ export default function ReviewGate({ gate, onUpdate }) {
         </div>
       )}
 
+      {flags.length > 0 && (
+        <div className="review-filter-bar">
+          <span className="review-filter-label">Show:</span>
+          {['pending', 'approved', 'rejected', 'all'].map(f => (
+            <button
+              key={f}
+              className={`filter-btn ${filter === f ? 'active' : ''}`}
+              onClick={() => setFilter(f)}
+            >
+              {f === 'all' ? `All (${flags.length})` : `${f.charAt(0).toUpperCase() + f.slice(1)} (${flags.filter(fl => fl.decision === f).length})`}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="review-gate-chapters">
         {Object.entries(byChapter).map(([chapter, chapterFlags]) => {
           const chapterReviewed = chapterFlags.filter(f => f.decision !== 'pending').length;
@@ -150,7 +171,7 @@ function FlagItem({ flag, onDecision, disabled }) {
   }
 
   function handleNoteBlur() {
-    if (note !== flag.note) {
+    if (note !== flag.note && flag.decision !== 'pending') {
       onDecision(flag.decision, note);
     }
   }
@@ -161,6 +182,16 @@ function FlagItem({ flag, onDecision, disabled }) {
         <span className={`pass-badge pass-badge-${flag.pass}`}>{flag.pass_label}</span>
         <span className="flag-text">{flag.text}</span>
       </div>
+      <textarea
+        className="flag-note"
+        value={note}
+        onChange={e => setNote(e.target.value)}
+        placeholder="Add a note (optional) — saved automatically when you click Approve / Reject / Defer"
+        rows={noteOpen || note ? 2 : 1}
+        onFocus={() => setNoteOpen(true)}
+        onBlur={handleNoteBlur}
+        disabled={disabled}
+      />
       <div className="flag-item-actions">
         <button
           className={`decision-btn ${flag.decision === 'approved' ? 'active-approve' : ''}`}
@@ -183,25 +214,7 @@ function FlagItem({ flag, onDecision, disabled }) {
         >
           Defer
         </button>
-        <button
-          className="btn-text"
-          onClick={() => setNoteOpen(p => !p)}
-          style={{ marginLeft: '0.5rem' }}
-        >
-          {noteOpen ? 'Hide note' : 'Add note'}
-        </button>
       </div>
-      {noteOpen && (
-        <textarea
-          className="flag-note"
-          value={note}
-          onChange={e => setNote(e.target.value)}
-          onBlur={handleNoteBlur}
-          placeholder="Add a note about this flag..."
-          rows={2}
-          disabled={disabled}
-        />
-      )}
     </div>
   );
 }
