@@ -81,6 +81,20 @@ async def update_decision(book_number: int, body: dict):
     _save_gate(book_number, gate)
     return gate
 
+@router.post("/{book_number}/clear-flags")
+async def clear_all_flags(book_number: int):
+    flags_dir = os.path.join(WORKSPACE, f"book-{book_number}", "flags")
+    cleared = 0
+    if os.path.exists(flags_dir):
+        for filename in os.listdir(flags_dir):
+            if filename.endswith(".json"):
+                os.remove(os.path.join(flags_dir, filename))
+                cleared += 1
+    gate_path = _gate_path(book_number)
+    if os.path.exists(gate_path):
+        os.remove(gate_path)
+    return {"cleared": cleared, "message": f"Cleared {cleared} flag files and reset review gate."}
+
 @router.post("/{book_number}/complete")
 async def complete_gate(book_number: int, body: dict = {}):
     gate = _load_gate(book_number)

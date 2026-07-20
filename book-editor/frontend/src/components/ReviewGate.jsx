@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 export default function ReviewGate({ gate, onUpdate }) {
   const [expanded, setExpanded] = useState({});
   const [confirming, setConfirming] = useState(false);
+  const [confirmingClear, setConfirmingClear] = useState(false);
   const [filter, setFilter] = useState('pending');
 
   if (!gate) return <div className="empty-state"><p>Loading review gate...</p></div>;
@@ -28,6 +29,12 @@ export default function ReviewGate({ gate, onUpdate }) {
     const res = await fetch('/review-gate/1/build', { method: 'POST' });
     const data = await res.json();
     onUpdate(data);
+  }
+
+  async function clearAllFlags() {
+    await fetch('/review-gate/1/clear-flags', { method: 'POST' });
+    onUpdate({ book_number: 1, status: 'pending', completed_at: null, flags: [] });
+    setConfirmingClear(false);
   }
 
   async function setDecision(flagId, decision, note) {
@@ -66,9 +73,22 @@ export default function ReviewGate({ gate, onUpdate }) {
           <h2>Review Gate</h2>
           <p className="review-gate-subtitle">Review all flags from P0 and P1 before unlocking line edits.</p>
         </div>
-        <button className="btn-secondary" onClick={buildGate}>
-          Sync Flags from Latest Run
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <button className="btn-secondary" onClick={buildGate}>
+            Sync Flags from Latest Run
+          </button>
+          {confirmingClear ? (
+            <>
+              <span style={{ color: 'var(--flag)', fontSize: '0.85rem' }}>Delete all flag files and reset gate?</span>
+              <button className="btn-danger" onClick={clearAllFlags}>Yes, Clear All</button>
+              <button className="btn-secondary" onClick={() => setConfirmingClear(false)}>Cancel</button>
+            </>
+          ) : (
+            <button className="btn-danger" onClick={() => setConfirmingClear(true)}>
+              Clear All Flags
+            </button>
+          )}
+        </div>
       </div>
 
       <div className={`review-gate-status ${isComplete ? 'complete' : 'pending'}`}>
