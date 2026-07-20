@@ -116,8 +116,17 @@ export default function PassRunner({ chapter, onResult, onRunAll, runningAll, ru
           )}
 
           {runningAll && runAllProgress && (
-            <div className="progress-hint">
-              {PASS_LABELS[passNumber]} — {runAllProgress.currentName} ({runAllProgress.current} of {runAllProgress.total})...
+            <div className="run-all-progress">
+              <div className="progress-bar-track">
+                <div
+                  className="progress-bar-fill"
+                  style={{ width: runAllProgress.total > 0 ? `${Math.round((runAllProgress.current / runAllProgress.total) * 100)}%` : '0%' }}
+                />
+              </div>
+              <div className="progress-bar-label">
+                {runAllProgress.current} of {runAllProgress.total} chapters
+                {runAllProgress.currentName ? ` — ${runAllProgress.currentName}` : ''}
+              </div>
             </div>
           )}
         </>

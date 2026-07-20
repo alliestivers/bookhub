@@ -164,3 +164,9 @@ input[type="file"] { background: var(--surface); border: 1px dashed var(--border
 .filter-btn:hover { border-color: var(--accent); color: var(--text); }
 .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 .decision-btn.active-answered { background: rgba(91,141,238,0.15); border-color: var(--accent2); color: var(--accent2); }
+
+/* Run-all progress bar */
+.run-all-progress { margin-top: 1rem; }
+.progress-bar-track { background: var(--surface2); border-radius: 4px; height: 8px; overflow: hidden; width: 100%; }
+.progress-bar-fill { background: var(--accent); border-radius: 4px; height: 100%; transition: width 0.4s ease; }
+.progress-bar-label { color: var(--muted); font-size: 0.8rem; margin-top: 0.4rem; }
