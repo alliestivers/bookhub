@@ -35,7 +35,13 @@ export default function App() {
     if (d.completed_passes?.length > 0) {
       setCompletedPasses(prev => ({ ...prev, [chapter.filename]: d.completed_passes }));
       const lastPass = Math.max(...d.completed_passes);
-      setPassResults(prev => ({ ...prev, [chapter.filename]: d.results_by_pass[lastPass] }));
+      const lastResult = d.results_by_pass[lastPass];
+      // Always merge P0 summary into the displayed result so it's never lost
+      const p0Summary = d.results_by_pass[0]?.results?.[0]?.output?.summary || '';
+      if (lastResult?.results?.[0]?.output && !lastResult.results[0].output.summary) {
+        lastResult.results[0].output.summary = p0Summary;
+      }
+      setPassResults(prev => ({ ...prev, [chapter.filename]: lastResult }));
     }
   }
 
