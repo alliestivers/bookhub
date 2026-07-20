@@ -55,17 +55,16 @@ Read the chapter carefully. DO NOT EDIT anything. Produce:
 1. A 250-350 word chapter summary (factual, no interpretation)
 2. All continuity data: character details, ages, dates, locations, physical facts, objects that might recur
 
-FLAGS — strict rule: only include a flag if it is a DIRECT CONTRADICTION or FACTUAL AMBIGUITY that Allie must resolve before the manuscript can move forward. Maximum 2 flags per chapter.
+FLAGS — extremely strict rule: only flag a DIRECT INTERNAL CONTRADICTION within this single chapter that cannot be resolved without Allie's input. Most chapters will have zero flags. Maximum 2 per chapter.
 
-A flag IS: a direct contradiction between two specific facts in the chapter that cannot be resolved without Allie's input.
-A flag IS NOT: any mention of the series bible, voice guide, or reference documents.
-A flag IS NOT: pseudonym verification questions — the master names list handles that, do not flag names.
-A flag IS NOT: details that "could be callbacks" — log those in continuity notes, never in flags.
-A flag IS NOT: observations about what the series bible should contain or needs updating.
-A flag IS NOT: anything that can be resolved during line edits or continuity pass.
-A flag IS NOT: notes about what reference documents are missing or unpopulated.
+A flag IS: two facts stated in THIS chapter that directly contradict each other (e.g. character described as alone, then someone else speaks with no introduction)
+A flag IS NOT: name or pseudonym questions — the master names list is provided above, use it
+A flag IS NOT: questions about callbacks or future chapters — you only know this chapter
+A flag IS NOT: series bible or reference document notes
+A flag IS NOT: details to log or track — put those in continuity notes
+A flag IS NOT: anything resolvable in a later pass
 
-If you are unsure whether it requires Allie's answer, do NOT flag it. Put it in continuity notes instead.
+Default to zero flags. Only flag if something is genuinely broken inside this chapter alone.
 
 Return JSON:
 {
