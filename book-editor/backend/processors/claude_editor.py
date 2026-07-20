@@ -205,7 +205,9 @@ Chapter file: {chapter_file}
 
 Return valid JSON only. No em dashes or en dashes anywhere in your response."""
 
-    response = client.messages.create(
+    import asyncio
+    response = await asyncio.to_thread(
+        client.messages.create,
         model="claude-sonnet-4-6",
         max_tokens=8000,
         system=system_prompt,
