@@ -60,7 +60,7 @@ async def get_chapter_results(book_number: int, filename: str):
             "pass": 0
         }
 
-    for pass_num in [1, 2, 3, 4, 5]:
+    for pass_num in [1, 2, 3, 4]:
         edit_path = os.path.join(edits_dir, f"{filename.replace('.md','')}-pass{pass_num}.md")
         if os.path.exists(edit_path):
             with open(edit_path, "r") as f:

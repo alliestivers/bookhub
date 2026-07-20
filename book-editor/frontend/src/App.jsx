@@ -4,6 +4,7 @@ import ChapterList from './components/ChapterList';
 import PassRunner from './components/PassRunner';
 import ResultsViewer from './components/ResultsViewer';
 import StatusPanel from './components/StatusPanel';
+import ReviewGate from './components/ReviewGate';
 
 export default function App() {
   const [chapters, setChapters] = useState([]);
@@ -14,6 +15,8 @@ export default function App() {
   const [view, setView] = useState('upload');
   const [runningAll, setRunningAll] = useState(false);
   const [runAllProgress, setRunAllProgress] = useState(null);
+  const [reviewGate, setReviewGate] = useState(null);
+  const [reviewGateStatus, setReviewGateStatus] = useState(null);
 
   async function loadStatus() {
     const res = await fetch('/workspace/status/1');
@@ -29,6 +32,13 @@ export default function App() {
     if (chapterList.length > 0) setView('editor');
   }
 
+  async function loadReviewGate() {
+    const res = await fetch('/review-gate/1');
+    const data = await res.json();
+    setReviewGate(data);
+    setReviewGateStatus(data.status);
+  }
+
   async function loadChapterResults(chapter) {
     const r = await fetch(`/workspace/chapter-results/1/${chapter.filename}`);
     const d = await r.json();
@@ -36,7 +46,6 @@ export default function App() {
       setCompletedPasses(prev => ({ ...prev, [chapter.filename]: d.completed_passes }));
       const lastPass = Math.max(...d.completed_passes);
       const lastResult = d.results_by_pass[lastPass];
-      // Always merge P0 summary into the displayed result so it's never lost
       const p0Summary = d.results_by_pass[0]?.results?.[0]?.output?.summary || '';
       if (lastResult?.results?.[0]?.output && !lastResult.results[0].output.summary) {
         lastResult.results[0].output.summary = p0Summary;
@@ -71,10 +80,19 @@ export default function App() {
     }, 5000);
   }
 
+  function handleGateUpdate(updatedGate) {
+    setReviewGate(updatedGate);
+    setReviewGateStatus(updatedGate.status);
+  }
+
   useEffect(() => {
     loadStatus();
     loadChapters();
+    loadReviewGate();
   }, []);
+
+  const pendingFlagCount = reviewGate?.flags?.filter(f => f.decision === 'pending').length || 0;
+  const totalFlagCount = reviewGate?.flags?.length || 0;
 
   return (
     <div className="app">
@@ -86,6 +104,16 @@ export default function App() {
         <nav>
           <button className={view === 'upload' ? 'active' : ''} onClick={() => setView('upload')}>Upload</button>
           <button className={view === 'editor' ? 'active' : ''} onClick={() => setView('editor')}>Editor</button>
+          <button
+            className={view === 'review' ? 'active' : ''}
+            onClick={() => setView('review')}
+            style={{ position: 'relative' }}
+          >
+            Review Gate
+            {reviewGateStatus !== 'complete' && totalFlagCount > 0 && (
+              <span className="gate-badge">{pendingFlagCount}</span>
+            )}
+          </button>
           <button className={view === 'logs' ? 'active' : ''} onClick={() => setView('logs')}>Logs</button>
         </nav>
       </header>
@@ -113,6 +141,7 @@ export default function App() {
                     onRunAll={runningAll ? null : runPassOnAll}
                     runningAll={runningAll}
                     runAllProgress={runAllProgress}
+                    reviewGateStatus={reviewGateStatus}
                     onResult={(r) => {
                       setPassResults(prev => ({ ...prev, [selectedChapter.filename]: r }));
                       setCompletedPasses(prev => {
@@ -134,6 +163,10 @@ export default function App() {
               )}
             </main>
           </div>
+        )}
+
+        {view === 'review' && (
+          <ReviewGate gate={reviewGate} onUpdate={handleGateUpdate} />
         )}
 
         {view === 'logs' && (

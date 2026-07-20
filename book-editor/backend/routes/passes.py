@@ -87,7 +87,7 @@ async def run_editing_pass(req: PassRequest):
             with open(summary_path, "w", encoding="utf-8") as f:
                 f.write(output.get("summary", ""))
 
-        if req.pass_number in [1, 2]:
+        if req.pass_number in [1, 2, 3, 4]:
             edit_path = os.path.join(edits_dir, f"{chapter_file.replace('.md','')}-pass{req.pass_number}.md")
             with open(edit_path, "w", encoding="utf-8") as f:
                 f.write(output.get("edits_content", ""))
@@ -189,7 +189,7 @@ async def _run_all_background(req: PassRequest, all_chapters: list, job_id: str)
             if req.pass_number == 0:
                 with open(os.path.join(summaries_dir, chapter_file), "w", encoding="utf-8") as f:
                     f.write(output.get("summary", ""))
-            if req.pass_number in [1, 2]:
+            if req.pass_number in [1, 2, 3, 4]:
                 edit_path = os.path.join(edits_dir, f"{chapter_file.replace('.md','')}-pass{req.pass_number}.md")
                 with open(edit_path, "w", encoding="utf-8") as f:
                     f.write(output.get("edits_content", ""))
@@ -216,7 +216,7 @@ async def _run_all_background(req: PassRequest, all_chapters: list, job_id: str)
 
 def _update_status(logs_dir, book_number, pass_number, last_chapter):
     status_path = os.path.join(logs_dir, "status.md")
-    pass_names = {0: "Ingest", 1: "Developmental", 2: "Continuity", 3: "Line Edit", 4: "Copyedit", 5: "Formatting"}
+    pass_names = {0: "Ingest", 1: "Developmental", 2: "Line Edit", 3: "Copyedit", 4: "Formatting"}
     with open(status_path, "w", encoding="utf-8") as f:
         f.write(f"""# STATUS
 Current book: {book_number}

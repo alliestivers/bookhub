@@ -65,45 +65,35 @@ Return JSON:
 }
 """,
         1: """
-=== PASS 1: DEVELOPMENTAL ===
-Assess structure and pacing. No rewrites. Flags and analysis only. Check:
+=== PASS 1: DEVELOPMENTAL + CONTINUITY ===
+Assess structure, pacing, AND continuity. No rewrites. Flags and analysis only.
+
+STRUCTURAL CHECK:
 - Does the chapter earn its place (reveals something new OR costs something new)?
 - Does the opening hook in the first two lines?
 - Does the ending land? What is its emotional register?
 - Is the reveal/cost distinct from neighboring chapters?
 - Pacing issues?
 
+CONTINUITY CHECK (cross-reference all prior chapter summaries provided):
+- Pseudonyms correct (never reverted to real names)
+- Ages, dates, locations consistent with prior chapters
+- Physical details match earlier chapters
+- Object continuity
+- Callback accuracy
+- Flag any contradictions between this chapter and prior summaries
+
 Return JSON:
 {
-  "summary": "brief structural assessment",
-  "edits_content": "full markdown-formatted analysis with FLAGS only",
-  "flags": ["list of structural issues for Allie"],
+  "summary": "brief structural and continuity assessment",
+  "edits_content": "full markdown-formatted analysis with structural FLAGS and continuity findings",
+  "flags": ["list of structural and continuity issues requiring Allie's decision"],
   "fixes": [],
   "continuity": ""
 }
 """,
         2: """
-=== PASS 2: CONTINUITY ===
-Check against continuity log, timeline, master names list. Verify:
-- Pseudonyms correct (never reverted to real names)
-- Ages, dates, locations consistent
-- Physical details match earlier chapters
-- Object continuity
-- Callback accuracy
-
-Verified errors = FIX (log it). Ambiguities = FLAG (quote both versions).
-
-Return JSON:
-{
-  "summary": "continuity check summary",
-  "edits_content": "markdown listing all continuity findings",
-  "flags": ["ambiguities requiring Allie's decision"],
-  "fixes": ["verified errors that were corrected, one line each"],
-  "continuity": ""
-}
-""",
-        3: """
-=== PASS 3: LINE EDIT ===
+=== PASS 2: LINE EDIT ===
 Prose rhythm, clarity, redundancy, sentence-level craft. Voice guide is law.
 For each change, use format: ORIGINAL / SUGGESTED / WHY
 Classify every item as SUGGEST or FLAG. Never FIX in this pass.
@@ -118,8 +108,8 @@ Return JSON:
   "continuity": ""
 }
 """,
-        4: """
-=== PASS 4: COPYEDIT ===
+        3: """
+=== PASS 3: COPYEDIT ===
 Mechanical only: typos, punctuation, spelling, formatting consistency.
 Fix autonomously. Log every change. Never reword for style.
 Remove any em dashes or en dashes and log each removal.
@@ -133,8 +123,8 @@ Return JSON:
   "continuity": ""
 }
 """,
-        5: """
-=== PASS 5: FORMATTING ===
+        4: """
+=== PASS 4: FORMATTING ===
 Prepare the chapter for KDP and IngramSpark publication. Apply all formatting rules:
 - Remove all em dashes and en dashes (replace with period, comma, or rewrite)
 - Consistent chapter heading format
