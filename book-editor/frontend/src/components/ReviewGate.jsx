@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 export default function ReviewGate({ gate, onUpdate }) {
   const [expanded, setExpanded] = useState({});
@@ -165,15 +165,21 @@ export default function ReviewGate({ gate, onUpdate }) {
 function FlagItem({ flag, onDecision, disabled }) {
   const [note, setNote] = useState(flag.note || '');
   const [noteOpen, setNoteOpen] = useState(!!flag.note);
+  const noteRef = useRef(note);
+
+  function handleNoteChange(e) {
+    setNote(e.target.value);
+    noteRef.current = e.target.value;
+  }
 
   function handleDecision(decision) {
     if (disabled) return;
-    onDecision(decision, note);
+    onDecision(decision, noteRef.current);
   }
 
   function handleNoteBlur() {
-    if (note !== flag.note && flag.decision !== 'pending') {
-      onDecision(flag.decision, note);
+    if (noteRef.current !== flag.note && flag.decision !== 'pending') {
+      onDecision(flag.decision, noteRef.current);
     }
   }
 
@@ -186,7 +192,7 @@ function FlagItem({ flag, onDecision, disabled }) {
       <textarea
         className="flag-note"
         value={note}
-        onChange={e => setNote(e.target.value)}
+        onChange={handleNoteChange}
         placeholder="Add a note (optional) — saved automatically when you click Approve / Reject / Defer"
         rows={noteOpen || note ? 2 : 1}
         onFocus={() => setNoteOpen(true)}
