@@ -3,8 +3,8 @@ import { useState } from 'react';
 function parseEditsContent(content) {
   if (!content) return null;
 
-  // Split on **SUGGEST** or **FLAG** blocks
-  const blockRegex = /\*\*(SUGGEST|FLAG)\*\*/g;
+  // Split on **SUGGEST** or **FLAG** blocks (also handles numbered variants like **S-01**)
+  const blockRegex = /\*\*(SUGGEST|FLAG|S-\d+|F-\d+)\*\*/g;
   const parts = [];
   let lastIndex = 0;
   let match;
@@ -27,7 +27,8 @@ function parseEditsContent(content) {
       blockRegex.lastIndex = nextMatch.index;
     }
 
-    const type = match[1]; // 'SUGGEST' or 'FLAG'
+    const rawType = match[1];
+    const type = rawType.startsWith('S') ? 'SUGGEST' : 'FLAG';
     const originalMatch = blockText.match(/ORIGINAL:\s*([\s\S]*?)(?=\nSUGGESTED:|$)/);
     const suggestedMatch = blockText.match(/SUGGESTED:\s*([\s\S]*?)(?=\nWHY:|$)/);
     const whyMatch = blockText.match(/WHY:\s*([\s\S]*?)$/);

@@ -111,14 +111,28 @@ Return JSON:
         2: """
 === PASS 2: LINE EDIT ===
 Prose rhythm, clarity, redundancy, sentence-level craft. Voice guide is law.
-For each change, use format: ORIGINAL / SUGGESTED / WHY
-Classify every item as SUGGEST or FLAG. Never FIX in this pass.
+Never FIX in this pass — only SUGGEST or FLAG.
 Never touch: Kenna letters, gut-punch endings, dark humor, embedded poetry/journals.
+
+Format EVERY item in edits_content exactly like this — no variations:
+
+**SUGGEST**
+ORIGINAL: exact original text
+SUGGESTED: your suggested replacement
+WHY: one sentence reason
+
+**FLAG**
+ORIGINAL: exact original text
+SUGGESTED: possible alternative or leave blank
+WHY: why this needs Allie's decision
+
+Use **SUGGEST** for changes you recommend. Use **FLAG** for anything that needs Allie's input before changing.
+Do not use numbered labels like S-01 or F-01. Use only **SUGGEST** or **FLAG** as the block header.
 
 Return JSON:
 {
   "summary": "brief line edit summary",
-  "edits_content": "full markdown with SUGGEST and FLAG items in ORIGINAL/SUGGESTED/WHY format",
+  "edits_content": "full markdown using only **SUGGEST** and **FLAG** blocks in the exact format above",
   "flags": ["items flagged for Allie that you did not touch"],
   "fixes": [],
   "continuity": ""
