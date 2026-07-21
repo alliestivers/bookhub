@@ -1,6 +1,107 @@
 import { useState } from 'react';
 
-export default function ResultsViewer({ result }) {
+function parseEditsContent(content) {
+  if (!content) return null;
+
+  // Split on **SUGGEST** or **FLAG** blocks
+  const blockRegex = /\*\*(SUGGEST|FLAG)\*\*/g;
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = blockRegex.exec(content)) !== null) {
+    if (match.index > lastIndex) {
+      const prefix = content.slice(lastIndex, match.index).trim();
+      if (prefix) parts.push({ type: 'text', content: prefix });
+    }
+    lastIndex = match.index + match[0].length;
+
+    // Find next block start or end of string
+    const nextMatch = blockRegex.exec(content);
+    const blockText = nextMatch
+      ? content.slice(lastIndex, nextMatch.index)
+      : content.slice(lastIndex);
+
+    if (nextMatch) {
+      // Reset so the outer loop picks up nextMatch
+      blockRegex.lastIndex = nextMatch.index;
+    }
+
+    const type = match[1]; // 'SUGGEST' or 'FLAG'
+    const originalMatch = blockText.match(/ORIGINAL:\s*([\s\S]*?)(?=\nSUGGESTED:|$)/);
+    const suggestedMatch = blockText.match(/SUGGESTED:\s*([\s\S]*?)(?=\nWHY:|$)/);
+    const whyMatch = blockText.match(/WHY:\s*([\s\S]*?)$/);
+
+    parts.push({
+      type,
+      original: originalMatch ? originalMatch[1].trim() : '',
+      suggested: suggestedMatch ? suggestedMatch[1].trim() : '',
+      why: whyMatch ? whyMatch[1].trim() : '',
+    });
+
+    lastIndex = nextMatch ? nextMatch.index + nextMatch[0].length : content.length;
+    if (!nextMatch) break;
+  }
+
+  if (lastIndex < content.length) {
+    const remainder = content.slice(lastIndex).trim();
+    if (remainder) parts.push({ type: 'text', content: remainder });
+  }
+
+  return parts.length > 0 ? parts : null;
+}
+
+function EditsBlock({ content, onApply }) {
+  const parsed = parseEditsContent(content);
+
+  if (!parsed) {
+    return <pre className="prose-output">{content}</pre>;
+  }
+
+  return (
+    <div className="edits-blocks">
+      {parsed.map((block, i) => {
+        if (block.type === 'text') {
+          return <pre key={i} className="prose-output edits-prose">{block.content}</pre>;
+        }
+        const isSuggest = block.type === 'SUGGEST';
+        return (
+          <div key={i} className={`edit-block ${isSuggest ? 'edit-block-suggest' : 'edit-block-flag'}`}>
+            <div className="edit-block-type">{block.type}</div>
+            {block.original && (
+              <div className="edit-original">
+                <span className="edit-field-label">ORIGINAL</span>
+                <span className="edit-field-text edit-original-text">{block.original}</span>
+              </div>
+            )}
+            {block.suggested && (
+              <div className="edit-suggested">
+                <span className="edit-field-label">SUGGESTED</span>
+                <span className="edit-field-text edit-suggested-text">{block.suggested}</span>
+              </div>
+            )}
+            {block.why && (
+              <div className="edit-why">
+                <span className="edit-field-label">WHY</span>
+                <em className="edit-field-text edit-why-text">{block.why}</em>
+              </div>
+            )}
+            {isSuggest && block.original && block.suggested && (
+              <button
+                className="btn-apply"
+                onClick={() => onApply({ original: block.original, suggested: block.suggested })}
+              >
+                Apply
+              </button>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function ResultsViewer({ result, onApply }) {
   const [tab, setTab] = useState('summary');
 
   if (!result?.results?.length) return null;
@@ -40,7 +141,7 @@ export default function ResultsViewer({ result }) {
         {tab === 'edits' && (
           <div className="result-section">
             {chapterResult.edits_content ? (
-              <pre className="prose-output">{chapterResult.edits_content}</pre>
+              <EditsBlock content={chapterResult.edits_content} onApply={onApply} />
             ) : (
               <p className="muted">No edits generated for this pass.</p>
             )}

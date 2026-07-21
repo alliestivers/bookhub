@@ -5,9 +5,12 @@ import PassRunner from './components/PassRunner';
 import ResultsViewer from './components/ResultsViewer';
 import StatusPanel from './components/StatusPanel';
 import ReviewGate from './components/ReviewGate';
+import ChapterManager from './components/ChapterManager';
+import ChapterEditor from './components/ChapterEditor';
 
 export default function App() {
   const [chapters, setChapters] = useState([]);
+  const [manifestChapters, setManifestChapters] = useState([]);
   const [selectedChapter, setSelectedChapter] = useState(null);
   const [passResults, setPassResults] = useState({});
   const [completedPasses, setCompletedPasses] = useState({});
@@ -17,6 +20,7 @@ export default function App() {
   const [runAllProgress, setRunAllProgress] = useState(null);
   const [reviewGate, setReviewGate] = useState(null);
   const [reviewGateStatus, setReviewGateStatus] = useState(null);
+  const [pendingApply, setPendingApply] = useState(null);
 
   async function loadStatus() {
     const res = await fetch('/workspace/status/1');
@@ -30,6 +34,16 @@ export default function App() {
     const chapterList = data.chapters || [];
     setChapters(chapterList);
     if (chapterList.length > 0) setView('editor');
+  }
+
+  async function loadManifestChapters() {
+    try {
+      const res = await fetch('/chapters/1');
+      const data = await res.json();
+      setManifestChapters(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setManifestChapters([]);
+    }
   }
 
   async function loadReviewGate() {
@@ -85,14 +99,28 @@ export default function App() {
     setReviewGateStatus(updatedGate.status);
   }
 
+  function handleApply(patch) {
+    // Navigate to editor tab and set pending apply
+    setView('editor');
+    setPendingApply({ ...patch, _ts: Date.now() });
+  }
+
   useEffect(() => {
     loadStatus();
     loadChapters();
     loadReviewGate();
+    loadManifestChapters();
   }, []);
 
   const pendingFlagCount = reviewGate?.flags?.filter(f => f.decision === 'pending').length || 0;
   const totalFlagCount = reviewGate?.flags?.length || 0;
+
+  // Derive display name for selected chapter from manifest
+  const selectedDisplayName = selectedChapter
+    ? (manifestChapters.find(m => m.filename === selectedChapter.filename)?.display_name
+        || selectedChapter.display_name
+        || selectedChapter.filename)
+    : '';
 
   return (
     <div className="app">
@@ -104,6 +132,7 @@ export default function App() {
         <nav>
           <button className={view === 'upload' ? 'active' : ''} onClick={() => setView('upload')}>Upload</button>
           <button className={view === 'editor' ? 'active' : ''} onClick={() => setView('editor')}>Editor</button>
+          <button className={view === 'chapters' ? 'active' : ''} onClick={() => { setView('chapters'); loadManifestChapters(); }}>Chapters</button>
           <button
             className={view === 'review' ? 'active' : ''}
             onClick={() => setView('review')}
@@ -120,7 +149,7 @@ export default function App() {
 
       <div className="app-body">
         {view === 'upload' && (
-          <ManuscriptUpload onUploaded={() => { loadChapters(); loadStatus(); }} />
+          <ManuscriptUpload onUploaded={() => { loadChapters(); loadStatus(); loadManifestChapters(); }} />
         )}
 
         {view === 'editor' && (
@@ -153,8 +182,17 @@ export default function App() {
                     }}
                   />
                   {passResults[selectedChapter.filename] && (
-                    <ResultsViewer result={passResults[selectedChapter.filename]} />
+                    <ResultsViewer
+                      result={passResults[selectedChapter.filename]}
+                      onApply={handleApply}
+                    />
                   )}
+                  <ChapterEditor
+                    chapter={selectedChapter.filename}
+                    displayName={selectedDisplayName}
+                    pendingApply={pendingApply}
+                    onApplyConsumed={() => setPendingApply(null)}
+                  />
                 </>
               ) : (
                 <div className="empty-state">
@@ -162,6 +200,15 @@ export default function App() {
                 </div>
               )}
             </main>
+          </div>
+        )}
+
+        {view === 'chapters' && (
+          <div className="chapter-manager-view">
+            <ChapterManager
+              chapters={manifestChapters}
+              onChaptersChange={loadManifestChapters}
+            />
           </div>
         )}
 

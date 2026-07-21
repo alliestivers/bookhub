@@ -172,3 +172,59 @@ input[type="file"] { background: var(--surface); border: 1px dashed var(--border
 .progress-bar-label { color: var(--muted); font-size: 0.8rem; margin-top: 0.4rem; }
 .btn-danger { background: rgba(200,60,60,0.15); border: 1px solid #c03c3c; border-radius: var(--r); color: #e06060; cursor: pointer; font-size: 0.85rem; padding: 0.4rem 0.9rem; transition: all 0.15s; }
 .btn-danger:hover { background: rgba(200,60,60,0.3); }
+
+/* Size variants */
+.btn-sm { font-size: 0.85rem; padding: 0.4rem 1rem; }
+.btn-xs { font-size: 0.75rem; padding: 0.2rem 0.6rem; }
+
+/* Chapter Manager */
+.chapter-manager-view { padding: 1.5rem 2rem; height: calc(100vh - 57px); overflow-y: auto; }
+.chapter-manager { max-width: 860px; }
+.chapter-manager-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+.chapter-manager-header h2 { font-family: Georgia, serif; font-size: 1.4rem; font-weight: normal; flex: 1; }
+
+.cm-list { border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
+.cm-list-header { display: grid; grid-template-columns: 28px 1fr 90px 120px; gap: 0.5rem; align-items: center; padding: 0.5rem 0.75rem; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.cm-row { display: grid; grid-template-columns: 28px 1fr 90px 120px; gap: 0.5rem; align-items: center; padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); background: var(--surface2); transition: background 0.1s; cursor: grab; }
+.cm-row:last-child { border-bottom: none; }
+.cm-row:hover { background: #22222e; }
+.cm-row.cm-drag-over { border-top: 2px solid var(--accent); background: rgba(139,124,248,0.08); }
+.cm-row.cm-dragging { opacity: 0.4; }
+.cm-handle { color: var(--muted); font-size: 1rem; cursor: grab; user-select: none; text-align: center; }
+.cm-col-name { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+.cm-display-name { font-size: 0.9rem; color: var(--text); cursor: text; border-bottom: 1px dashed transparent; transition: border-color 0.15s; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cm-display-name:hover { border-bottom-color: var(--muted); }
+.cm-filename { font-family: monospace; font-size: 0.72rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cm-name-input { background: var(--bg); border: 1px solid var(--accent); border-radius: 4px; color: var(--text); font-size: 0.9rem; padding: 0.2rem 0.4rem; width: 100%; }
+.cm-col-status { display: flex; gap: 0.2rem; flex-wrap: wrap; }
+.cm-col-actions { display: flex; gap: 0.35rem; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+
+/* Chapter Editor */
+.chapter-editor-section { margin-top: 1.5rem; border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
+.chapter-editor-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: none; color: var(--text); cursor: pointer; font-size: 0.85rem; font-weight: 600; letter-spacing: 0.04em; padding: 0.75rem 1rem; text-align: left; transition: background 0.15s; }
+.chapter-editor-toggle:hover { background: var(--surface2); }
+.toggle-arrow { color: var(--muted); font-size: 0.75rem; }
+.chapter-editor-body { padding: 1rem; background: var(--surface2); }
+.chapter-textarea { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r); color: var(--text); font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; line-height: 1.6; min-height: 60vh; padding: 1rem; resize: vertical; width: 100%; }
+.chapter-textarea:focus { border-color: var(--accent); outline: none; }
+.chapter-editor-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 0.75rem; flex-wrap: wrap; gap: 0.5rem; }
+.chapter-editor-counts { color: var(--muted); font-size: 0.8rem; }
+.chapter-editor-actions { display: flex; gap: 0.5rem; align-items: center; }
+
+/* Edits blocks (P2 apply) */
+.edits-blocks { display: flex; flex-direction: column; gap: 1rem; }
+.edits-prose { margin: 0; }
+.edit-block { border-radius: var(--r); padding: 0.85rem 1rem; border: 1px solid var(--border); }
+.edit-block-suggest { background: rgba(91,141,238,0.05); border-color: rgba(91,141,238,0.25); }
+.edit-block-flag { background: rgba(226,160,64,0.05); border-color: rgba(226,160,64,0.25); }
+.edit-block-type { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; margin-bottom: 0.6rem; color: var(--muted); }
+.edit-block-suggest .edit-block-type { color: var(--accent2); }
+.edit-block-flag .edit-block-type { color: var(--flag); }
+.edit-original, .edit-suggested, .edit-why { display: flex; gap: 0.5rem; margin-bottom: 0.4rem; align-items: flex-start; }
+.edit-field-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; color: var(--muted); white-space: nowrap; padding-top: 0.1rem; min-width: 68px; }
+.edit-field-text { font-size: 0.88rem; line-height: 1.5; flex: 1; }
+.edit-original-text { color: var(--muted); }
+.edit-suggested-text { color: var(--text); background: rgba(64,176,112,0.1); border-radius: 3px; padding: 0.1rem 0.3rem; }
+.edit-why-text { color: var(--muted); font-style: italic; }
+.btn-apply { background: rgba(64,176,112,0.15); border: 1px solid var(--fix); border-radius: var(--r); color: var(--fix); cursor: pointer; font-size: 0.8rem; font-weight: 600; margin-top: 0.5rem; padding: 0.3rem 0.85rem; transition: all 0.15s; }
+.btn-apply:hover { background: rgba(64,176,112,0.3); }
