@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Node
+node_modules/
+
+# Workspace — keep structure but not large outputs
+workspace/*/logs/*.md
+workspace/*/summaries/
+workspace/*/edits/
+workspace/*/flags/
+
+# Keep chapters and manifest
+!workspace/*/chapters/
+!workspace/*/chapters/**
+!workspace/*/logs/review-gate.json
+!workspace/*/logs/chapter-manifest.json
+!workspace/*/logs/status.md
