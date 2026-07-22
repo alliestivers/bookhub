@@ -236,9 +236,20 @@ Return valid JSON only. No em dashes or en dashes anywhere in your response."""
             raw = raw[4:]
     raw = raw.strip()
 
+    # Remove em dashes and en dashes that break JSON parsing
+    raw = raw.replace('—', '-').replace('–', '-')
+
     try:
         return json.loads(raw)
     except json.JSONDecodeError:
+        # Try extracting JSON from within the response
+        import re
+        json_match = re.search(r'\{[\s\S]*\}', raw)
+        if json_match:
+            try:
+                return json.loads(json_match.group())
+            except json.JSONDecodeError:
+                pass
         return {
             "summary": "Parse error -- raw output returned",
             "edits_content": raw,
