@@ -29,9 +29,9 @@ function parseEditsContent(content) {
 
     const rawType = match[1];
     const type = rawType.startsWith('S') ? 'SUGGEST' : 'FLAG';
-    const originalMatch = blockText.match(/ORIGINAL:\s*([\s\S]*?)(?=\nSUGGESTED:|$)/);
-    const suggestedMatch = blockText.match(/SUGGESTED:\s*([\s\S]*?)(?=\nWHY:|$)/);
-    const whyMatch = blockText.match(/WHY:\s*([\s\S]*?)$/);
+    const originalMatch = blockText.match(/ORIGINAL:\s*([\s\S]*?)(?=\nSUGGESTED:|\nWHY:|$)/);
+    const suggestedMatch = blockText.match(/SUGGESTED:\s*([\s\S]*?)(?=\nWHY:|\nORIGINAL:|$)/);
+    const whyMatch = blockText.match(/WHY:\s*([\s\S]*?)(?=\nORIGINAL:|\nSUGGESTED:|$)/);
 
     parts.push({
       type,

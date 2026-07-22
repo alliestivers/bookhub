@@ -43,6 +43,17 @@ async def upload_manuscript(
 
     total_words = sum(c["word_count"] for c in saved)
 
+    # Auto-commit chapters to git so they survive container restarts
+    try:
+        import subprocess
+        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+        subprocess.run(["git", "add", chapters_dir], cwd=repo_root, check=True)
+        subprocess.run(["git", "commit", "-m", f"Auto-save: upload manuscript book-{book_number} ({len(saved)} chapters)"],
+                       cwd=repo_root, capture_output=True)
+        subprocess.run(["git", "push"], cwd=repo_root, capture_output=True)
+    except Exception as e:
+        print(f"Auto-commit warning: {e}")
+
     return {
         "chapters": saved,
         "total_chapters": len(saved),
