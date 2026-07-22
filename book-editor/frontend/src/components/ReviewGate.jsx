@@ -6,7 +6,19 @@ export default function ReviewGate({ gate, onUpdate }) {
   const [confirmingClear, setConfirmingClear] = useState(false);
   const [filter, setFilter] = useState('pending');
 
-  if (!gate) return <div className="empty-state"><p>Loading review gate...</p></div>;
+  if (!gate) return (
+    <div className="review-gate">
+      <div className="review-gate-header">
+        <div><h2>Review Gate</h2></div>
+        <button className="btn-secondary" onClick={async () => {
+          const res = await fetch('/review-gate/1/build', { method: 'POST' });
+          const data = await res.json();
+          onUpdate(data);
+        }}>Sync Flags from Latest Run</button>
+      </div>
+      <div className="empty-state"><p>Loading review gate... If this takes too long, click Sync above.</p></div>
+    </div>
+  );
 
   const flags = gate.flags || [];
   const total = flags.length;
