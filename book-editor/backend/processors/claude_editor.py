@@ -241,15 +241,17 @@ Return valid JSON only. No em dashes or en dashes anywhere in your response."""
 
     try:
         return json.loads(raw)
-    except json.JSONDecodeError:
-        # Try extracting JSON from within the response
+    except json.JSONDecodeError as e:
+        # Log the raw output and error to help diagnose
         import re
+        print(f"JSON PARSE ERROR: {e}")
+        print(f"RAW OUTPUT (first 500 chars): {raw[:500]}")
         json_match = re.search(r'\{[\s\S]*\}', raw)
         if json_match:
             try:
                 return json.loads(json_match.group())
-            except json.JSONDecodeError:
-                pass
+            except json.JSONDecodeError as e2:
+                print(f"SECOND PARSE ERROR: {e2}")
         return {
             "summary": "Parse error -- raw output returned",
             "edits_content": raw,
