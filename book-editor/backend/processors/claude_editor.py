@@ -242,20 +242,47 @@ Return valid JSON only. No em dashes or en dashes anywhere in your response."""
     try:
         return json.loads(raw)
     except json.JSONDecodeError as e:
-        # Log the raw output and error to help diagnose
         import re
         print(f"JSON PARSE ERROR: {e}")
         print(f"RAW OUTPUT (first 500 chars): {raw[:500]}")
-        json_match = re.search(r'\{[\s\S]*\}', raw)
-        if json_match:
-            try:
-                return json.loads(json_match.group())
-            except json.JSONDecodeError as e2:
-                print(f"SECOND PARSE ERROR: {e2}")
+
+        # Extract fields manually when JSON is malformed due to unescaped content
+        def extract_field(text, field):
+            pattern = rf'"{field}":\s*"([\s\S]*?)(?<!\\)",\s*"(?:edits_content|flags|fixes|continuity|summary)"'
+            m = re.search(pattern, text)
+            if m:
+                return m.group(1).replace('\\n', '\n').replace('\\"', '"')
+            # Try grabbing to end of object
+            pattern2 = rf'"{field}":\s*"([\s\S]*?)(?<!\\)"\s*\}}'
+            m2 = re.search(pattern2, text)
+            if m2:
+                return m2.group(1).replace('\\n', '\n').replace('\\"', '"')
+            return ""
+
+        def extract_array(text, field):
+            m = re.search(rf'"{field}":\s*(\[[\s\S]*?\])', text)
+            if m:
+                try:
+                    return json.loads(m.group(1))
+                except Exception:
+                    pass
+            return []
+
+        # For edits_content, grab everything after "edits_content": " until the flags array
+        edits_match = re.search(r'"edits_content":\s*"([\s\S]*?)",\s*"flags"', raw)
+        edits_content = ""
+        if edits_match:
+            edits_content = edits_match.group(1).replace('\\n', '\n').replace('\\"', '"')
+        else:
+            # Grab everything after edits_content key to end
+            edits_match2 = re.search(r'"edits_content":\s*"([\s\S]+)', raw)
+            if edits_match2:
+                edits_content = edits_match2.group(1)
+
         return {
-            "summary": "Parse error -- raw output returned",
-            "edits_content": raw,
-            "flags": ["JSON parse failed -- review raw output"],
-            "fixes": [],
-            "continuity": "",
+            "summary": extract_field(raw, "summary"),
+            "edits_content": edits_content,
+            "flags": extract_array(raw, "flags"),
+            "fixes": extract_array(raw, "fixes"),
+            "continuity": extract_field(raw, "continuity"),
         }
