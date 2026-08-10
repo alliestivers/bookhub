@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-export default function ChapterEditor({ chapter, displayName, pendingApply, onApplyConsumed }) {
+export default function ChapterEditor({ chapter, displayName, pendingApply, onApplyConsumed, refreshKey }) {
   const [text, setText] = useState('');
   const [savedText, setSavedText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,7 +27,7 @@ export default function ChapterEditor({ chapter, displayName, pendingApply, onAp
 
   useEffect(() => {
     if (chapter) loadText();
-  }, [chapter]);
+  }, [chapter, refreshKey]);
 
   // Watch for pendingApply
   useEffect(() => {

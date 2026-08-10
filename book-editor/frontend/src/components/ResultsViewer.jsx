@@ -53,7 +53,69 @@ function parseEditsContent(content) {
   return parts.length > 0 ? parts : null;
 }
 
-function EditsBlock({ content, onApply }) {
+function SuggestCard({ block, chapterFilename, onApplied }) {
+  const [suggested, setSuggested] = useState(block.suggested);
+  const [status, setStatus] = useState('idle'); // idle | applying | applied | error
+
+  async function apply() {
+    setStatus('applying');
+    try {
+      const textRes = await fetch(`/chapters/1/${chapterFilename}/text`);
+      const { text } = await textRes.json();
+      if (!text.includes(block.original)) {
+        setStatus('error');
+        return;
+      }
+      const newText = text.replace(block.original, suggested);
+      await fetch(`/chapters/1/${chapterFilename}/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: newText }),
+      });
+      setStatus('applied');
+      onApplied?.();
+    } catch (e) {
+      setStatus('error');
+    }
+  }
+
+  return (
+    <div className="edit-block edit-block-suggest">
+      <div className="edit-block-type">SUGGEST</div>
+      {block.original && (
+        <div className="edit-original">
+          <span className="edit-field-label">ORIGINAL</span>
+          <span className="edit-field-text edit-original-text">{block.original}</span>
+        </div>
+      )}
+      <div className="edit-suggested">
+        <span className="edit-field-label">SUGGESTED</span>
+        <textarea
+          className="edit-suggested-input"
+          value={suggested}
+          onChange={(e) => { setSuggested(e.target.value); if (status !== 'idle') setStatus('idle'); }}
+          rows={Math.max(1, Math.ceil(suggested.length / 80))}
+        />
+      </div>
+      {block.why && (
+        <div className="edit-why">
+          <span className="edit-field-label">WHY</span>
+          <em className="edit-field-text edit-why-text">{block.why}</em>
+        </div>
+      )}
+      <div className="edit-apply-row">
+        <button className="btn-apply" onClick={apply} disabled={status === 'applying' || status === 'applied'}>
+          {status === 'applying' ? 'Applying...' : status === 'applied' ? 'Applied ✓' : 'Apply'}
+        </button>
+        {status === 'error' && (
+          <span className="apply-error">Could not find the original line in the chapter -- it may have already changed. Edit in the chapter editor instead.</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EditsBlock({ content, chapterFilename, onApplied }) {
   const parsed = parseEditsContent(content);
 
   if (!parsed) {
@@ -67,6 +129,18 @@ function EditsBlock({ content, onApply }) {
           return <pre key={i} className="prose-output edits-prose">{block.content}</pre>;
         }
         const isSuggest = block.type === 'SUGGEST';
+
+        if (isSuggest && block.original && block.suggested) {
+          return (
+            <SuggestCard
+              key={i}
+              block={block}
+              chapterFilename={chapterFilename}
+              onApplied={onApplied}
+            />
+          );
+        }
+
         return (
           <div key={i} className={`edit-block ${isSuggest ? 'edit-block-suggest' : 'edit-block-flag'}`}>
             <div className="edit-block-type">{block.type}</div>
@@ -88,14 +162,6 @@ function EditsBlock({ content, onApply }) {
                 <em className="edit-field-text edit-why-text">{block.why}</em>
               </div>
             )}
-            {isSuggest && block.original && block.suggested && (
-              <button
-                className="btn-apply"
-                onClick={() => onApply({ original: block.original, suggested: block.suggested })}
-              >
-                Apply
-              </button>
-            )}
           </div>
         );
       })}
@@ -103,7 +169,7 @@ function EditsBlock({ content, onApply }) {
   );
 }
 
-export default function ResultsViewer({ result, onApply }) {
+export default function ResultsViewer({ result, chapterFilename, onApplied }) {
   const [tab, setTab] = useState('summary');
 
   if (!result?.results?.length) return null;
@@ -143,7 +209,7 @@ export default function ResultsViewer({ result, onApply }) {
         {tab === 'edits' && (
           <div className="result-section">
             {chapterResult.edits_content ? (
-              <EditsBlock content={chapterResult.edits_content} onApply={onApply} />
+              <EditsBlock content={chapterResult.edits_content} chapterFilename={chapterFilename} onApplied={onApplied} />
             ) : (
               <p className="muted">No edits generated for this pass.</p>
             )}

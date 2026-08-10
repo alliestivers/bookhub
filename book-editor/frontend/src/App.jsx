@@ -22,6 +22,7 @@ export default function App() {
   const [reviewGate, setReviewGate] = useState(null);
   const [reviewGateStatus, setReviewGateStatus] = useState(null);
   const [pendingApply, setPendingApply] = useState(null);
+  const [editorRefreshKey, setEditorRefreshKey] = useState(0);
 
   async function loadStatus() {
     const res = await fetch('/workspace/status/1');
@@ -100,10 +101,8 @@ export default function App() {
     setReviewGateStatus(updatedGate.status);
   }
 
-  function handleApply(patch) {
-    // Navigate to editor tab and set pending apply
-    setView('editor');
-    setPendingApply({ ...patch, _ts: Date.now() });
+  function handleApplied() {
+    setEditorRefreshKey(k => k + 1);
   }
 
   useEffect(() => {
@@ -186,7 +185,8 @@ export default function App() {
                   {passResults[selectedChapter.filename] && (
                     <ResultsViewer
                       result={passResults[selectedChapter.filename]}
-                      onApply={handleApply}
+                      chapterFilename={selectedChapter.filename}
+                      onApplied={handleApplied}
                     />
                   )}
                   <ChapterEditor
@@ -194,6 +194,7 @@ export default function App() {
                     displayName={selectedDisplayName}
                     pendingApply={pendingApply}
                     onApplyConsumed={() => setPendingApply(null)}
+                    refreshKey={editorRefreshKey}
                   />
                 </>
               ) : (
