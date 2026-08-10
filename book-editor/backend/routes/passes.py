@@ -29,6 +29,13 @@ def log_cost(logs_dir: str, book_number: int, pass_number: int, chapter_file: st
     with open(cost_log_path, "a", encoding="utf-8") as f:
         f.write(_json.dumps(entry) + "\n")
 
+def is_locked_chapter(filename: str) -> bool:
+    """Kenna letters and other never-touch items are marked with 'letter' in
+    the filename. These must never be rewritten by P2 (line edit), P3
+    (copyedit), or P4 (formatting) -- those passes can hallucinate or make
+    real edits, and 'never touch' has to be enforced, not just prompted."""
+    return "letter" in filename.lower()
+
 def get_divider_filenames(book_number: int) -> set:
     manifest_path = os.path.join(WORKSPACE, f"book-{book_number}", "logs", "chapter-manifest.json")
     if not os.path.exists(manifest_path):
@@ -79,6 +86,19 @@ async def run_editing_pass(req: PassRequest):
 
         with open(chapter_path, "r", encoding="utf-8") as f:
             chapter_text = f.read()
+
+        if req.pass_number in [2, 3, 4] and is_locked_chapter(chapter_file):
+            results.append({
+                "chapter": chapter_file,
+                "output": {
+                    "summary": "Locked -- never-touch item. Skipped, no API call made.",
+                    "edits_content": "",
+                    "flags": [],
+                    "fixes": [],
+                    "continuity": "",
+                },
+            })
+            continue
 
         prev_text = ""
         next_text = ""
@@ -178,6 +198,8 @@ async def run_all_chapters(req: PassRequest, background_tasks: BackgroundTasks):
         raise HTTPException(status_code=400, detail="No chapters found.")
     divider_filenames = get_divider_filenames(req.book_number)
     all_chapters = sorted([c for c in os.listdir(chapters_dir) if c.endswith(".md") and c not in divider_filenames])
+    if req.pass_number in [2, 3, 4]:
+        all_chapters = [c for c in all_chapters if not is_locked_chapter(c)]
     if req.skip_existing:
         if req.pass_number == 0:
             check_dir = os.path.join(WORKSPACE, f"book-{req.book_number}", "summaries")
@@ -210,6 +232,8 @@ async def _run_all_background(req: PassRequest, all_chapters: list, job_id: str)
         _run_all_progress[job_id]["current_name"] = chapter_file
         chapter_path = os.path.join(chapters_dir, chapter_file)
         if not os.path.exists(chapter_path):
+            continue
+        if req.pass_number in [2, 3, 4] and is_locked_chapter(chapter_file):
             continue
         try:
             with open(chapter_path, "r", encoding="utf-8") as f:
