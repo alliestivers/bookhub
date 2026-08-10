@@ -229,14 +229,21 @@ Chapter file: {chapter_file}
 
 Return valid JSON only. No em dashes or en dashes anywhere in your response."""
 
+    # P2/P3/P4 can produce a long list of suggestion blocks or a full
+    # corrected chapter -- give them more headroom than P0/P1's shorter
+    # summary/analysis output so responses don't get cut off mid-generation.
+    max_tokens = 8000 if pass_number in [0, 1] else 16000
+
     import asyncio
     response = await asyncio.to_thread(
         client.messages.create,
         model="claude-sonnet-4-6",
-        max_tokens=8000,
+        max_tokens=max_tokens,
         system=system_prompt,
         messages=[{"role": "user", "content": user_message}]
     )
+
+    truncated = getattr(response, "stop_reason", None) == "max_tokens"
 
     # Approximate per-million-token pricing for claude-sonnet-4-6, in USD.
     # Update these constants if Anthropic's published pricing changes.
@@ -289,6 +296,9 @@ Return valid JSON only. No em dashes or en dashes anywhere in your response."""
             parsed["edits_content"] = strip_noop_suggestions(parsed["edits_content"])
         if isinstance(parsed, dict):
             parsed["_usage"] = usage_info
+            if truncated:
+                parsed.setdefault("flags", [])
+                parsed["flags"] = ["TRUNCATED: this pass hit its output length limit and did not finish covering the full chapter. Rerun this chapter to get complete coverage."] + parsed["flags"]
         return parsed
     except json.JSONDecodeError as e:
         import re
@@ -328,10 +338,14 @@ Return valid JSON only. No em dashes or en dashes anywhere in your response."""
             if edits_match2:
                 edits_content = edits_match2.group(1)
 
+        flags = extract_array(raw, "flags")
+        if truncated:
+            flags = ["TRUNCATED: this pass hit its output length limit and did not finish covering the full chapter (this also broke the JSON, so some content may be missing or malformed below). Rerun this chapter to get complete coverage."] + flags
+
         return {
             "summary": extract_field(raw, "summary"),
             "edits_content": strip_noop_suggestions(edits_content),
-            "flags": extract_array(raw, "flags"),
+            "flags": flags,
             "fixes": extract_array(raw, "fixes"),
             "continuity": extract_field(raw, "continuity"),
             "_usage": usage_info,

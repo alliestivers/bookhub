@@ -59,6 +59,16 @@ function parseEditsContent(content) {
   return filtered.length > 0 ? filtered : null;
 }
 
+function normalizeForMatch(s) {
+  // Quote/dash normalization only -- every substitution is 1 character for
+  // 1 character, so positions found in the normalized string line up
+  // exactly with positions in the original string.
+  return s
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/[–—]/g, '-');
+}
+
 function EditCard({ block, chapterFilename, onApplied }) {
   const isFlag = block.type === 'FLAG';
   const [suggested, setSuggested] = useState(block.suggested || (isFlag ? block.original : ''));
@@ -69,11 +79,17 @@ function EditCard({ block, chapterFilename, onApplied }) {
     try {
       const textRes = await fetch(`/chapters/1/${chapterFilename}/text`);
       const { text } = await textRes.json();
-      if (!text.includes(block.original)) {
+
+      const normText = normalizeForMatch(text);
+      const normOriginal = normalizeForMatch(block.original);
+      const idx = normText.indexOf(normOriginal);
+
+      if (idx === -1) {
         setStatus('error');
         return;
       }
-      const newText = text.replace(block.original, suggested);
+
+      const newText = text.slice(0, idx) + suggested + text.slice(idx + normOriginal.length);
       await fetch(`/chapters/1/${chapterFilename}/save`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
