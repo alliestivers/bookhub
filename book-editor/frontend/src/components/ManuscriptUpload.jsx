@@ -34,6 +34,15 @@ export default function ManuscriptUpload({ onUploaded }) {
       <h2>Upload Manuscript</h2>
       <p>Upload your Book 1 manuscript (.docx or .md). The system will split it into chapters automatically.</p>
 
+      <div className="upload-tip">
+        <strong>Before you upload:</strong> every distinct section needs its own heading -- chapters, letters,
+        a dedication, a foreword, an opening or closing letter, all of it. In Word, apply the <strong>Heading 1</strong>{' '}
+        style to the first line of each section (Home tab -&gt; Styles -&gt; Heading 1). Anything without a heading
+        that comes before your first titled section will be bundled into a single "Opening" file instead of split
+        out on its own -- so if you have both a dedication and an opening letter with no headings, they'll get
+        merged together. Give each one a heading and they'll come through as separate files.
+      </div>
+
       <form onSubmit={handleSubmit}>
         <div className="field">
           <label>Manuscript file (.docx or .md)</label>

@@ -259,3 +259,5 @@ input[type="file"] { background: var(--surface); border: 1px dashed var(--border
 .divider-item { opacity: 0.85; }
 .divider-page-notice { background: rgba(226,160,64,0.06); border: 1px solid rgba(226,160,64,0.25); border-radius: var(--r); padding: 1rem; margin-bottom: 1rem; }
 .divider-page-notice p { color: var(--muted); font-size: 0.85rem; margin: 0.5rem 0 0; }
+
+.upload-tip { background: rgba(91,141,238,0.06); border: 1px solid rgba(91,141,238,0.25); border-radius: var(--r); color: var(--muted); font-size: 0.85rem; line-height: 1.6; margin: 1rem 0; padding: 0.85rem 1rem; }
