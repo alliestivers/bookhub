@@ -238,6 +238,19 @@ Return valid JSON only. No em dashes or en dashes anywhere in your response."""
         messages=[{"role": "user", "content": user_message}]
     )
 
+    # Approximate per-million-token pricing for claude-sonnet-4-6, in USD.
+    # Update these constants if Anthropic's published pricing changes.
+    INPUT_COST_PER_MTOK = 3.00
+    OUTPUT_COST_PER_MTOK = 15.00
+    input_tokens = getattr(response.usage, "input_tokens", 0) if hasattr(response, "usage") else 0
+    output_tokens = getattr(response.usage, "output_tokens", 0) if hasattr(response, "usage") else 0
+    cost_usd = (input_tokens / 1_000_000) * INPUT_COST_PER_MTOK + (output_tokens / 1_000_000) * OUTPUT_COST_PER_MTOK
+    usage_info = {
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "estimated_cost_usd": round(cost_usd, 4),
+    }
+
     raw = response.content[0].text.strip()
 
     if raw.startswith("```"):
@@ -274,6 +287,8 @@ Return valid JSON only. No em dashes or en dashes anywhere in your response."""
         parsed = json.loads(raw)
         if isinstance(parsed, dict) and parsed.get("edits_content"):
             parsed["edits_content"] = strip_noop_suggestions(parsed["edits_content"])
+        if isinstance(parsed, dict):
+            parsed["_usage"] = usage_info
         return parsed
     except json.JSONDecodeError as e:
         import re
@@ -319,4 +334,5 @@ Return valid JSON only. No em dashes or en dashes anywhere in your response."""
             "flags": extract_array(raw, "flags"),
             "fixes": extract_array(raw, "fixes"),
             "continuity": extract_field(raw, "continuity"),
+            "_usage": usage_info,
         }

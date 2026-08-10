@@ -261,3 +261,15 @@ input[type="file"] { background: var(--surface); border: 1px dashed var(--border
 .divider-page-notice p { color: var(--muted); font-size: 0.85rem; margin: 0.5rem 0 0; }
 
 .upload-tip { background: rgba(91,141,238,0.06); border: 1px solid rgba(91,141,238,0.25); border-radius: var(--r); color: var(--muted); font-size: 0.85rem; line-height: 1.6; margin: 1rem 0; padding: 0.85rem 1rem; }
+
+/* Cost tracking */
+.cost-summary { background: rgba(64,176,112,0.06); border: 1px solid rgba(64,176,112,0.25); border-radius: var(--r); margin-bottom: 1.5rem; padding: 1rem 1.25rem; }
+.cost-total { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 0.6rem; }
+.cost-total-label { color: var(--muted); font-size: 0.85rem; }
+.cost-total-value { color: var(--fix); font-size: 1.5rem; font-weight: 700; }
+.cost-breakdown { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.5rem; }
+.cost-pass-row { display: flex; gap: 0.75rem; font-size: 0.82rem; }
+.cost-pass-name { color: var(--text); min-width: 110px; }
+.cost-pass-calls { color: var(--muted); min-width: 70px; }
+.cost-pass-cost { color: var(--fix); font-weight: 600; }
+.cost-disclaimer { color: var(--muted); font-size: 0.72rem; margin: 0.5rem 0 0; }

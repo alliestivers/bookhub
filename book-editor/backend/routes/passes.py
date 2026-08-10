@@ -11,6 +11,24 @@ WORKSPACE = os.path.join(os.path.dirname(__file__), "..", "..", "workspace")
 # Shared progress state for run-all jobs
 _run_all_progress = {}
 
+def log_cost(logs_dir: str, book_number: int, pass_number: int, chapter_file: str, usage: dict):
+    if not usage:
+        return
+    import json as _json
+    from datetime import datetime, timezone
+    cost_log_path = os.path.join(logs_dir, "cost-log.jsonl")
+    entry = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "book_number": book_number,
+        "pass_number": pass_number,
+        "chapter_file": chapter_file,
+        "input_tokens": usage.get("input_tokens", 0),
+        "output_tokens": usage.get("output_tokens", 0),
+        "estimated_cost_usd": usage.get("estimated_cost_usd", 0),
+    }
+    with open(cost_log_path, "a", encoding="utf-8") as f:
+        f.write(_json.dumps(entry) + "\n")
+
 def get_divider_filenames(book_number: int) -> set:
     manifest_path = os.path.join(WORKSPACE, f"book-{book_number}", "logs", "chapter-manifest.json")
     if not os.path.exists(manifest_path):
@@ -99,6 +117,8 @@ async def run_editing_pass(req: PassRequest):
             continuity_text=continuity_text,
             book_number=req.book_number,
         )
+
+        log_cost(logs_dir, req.book_number, req.pass_number, chapter_file, output.get("_usage"))
 
         if req.pass_number == 0:
             summary_path = os.path.join(summaries_dir, chapter_file)
@@ -220,6 +240,7 @@ async def _run_all_background(req: PassRequest, all_chapters: list, job_id: str)
                 continuity_text=continuity_text,
                 book_number=req.book_number,
             )
+            log_cost(logs_dir, req.book_number, req.pass_number, chapter_file, output.get("_usage"))
             if req.pass_number == 0:
                 with open(os.path.join(summaries_dir, chapter_file), "w", encoding="utf-8") as f:
                     f.write(output.get("summary", ""))

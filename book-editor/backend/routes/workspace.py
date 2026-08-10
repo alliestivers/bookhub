@@ -21,6 +21,47 @@ async def get_status(book_number: int = 1):
 
     return result
 
+@router.get("/costs/{book_number}")
+async def get_costs(book_number: int = 1):
+    logs_dir = os.path.join(WORKSPACE, f"book-{book_number}", "logs")
+    cost_log_path = os.path.join(logs_dir, "cost-log.jsonl")
+
+    total_cost = 0.0
+    total_input_tokens = 0
+    total_output_tokens = 0
+    total_calls = 0
+    by_pass = {}
+
+    if os.path.exists(cost_log_path):
+        with open(cost_log_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    entry = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                total_cost += entry.get("estimated_cost_usd", 0)
+                total_input_tokens += entry.get("input_tokens", 0)
+                total_output_tokens += entry.get("output_tokens", 0)
+                total_calls += 1
+                p = str(entry.get("pass_number"))
+                if p not in by_pass:
+                    by_pass[p] = {"cost": 0.0, "calls": 0, "input_tokens": 0, "output_tokens": 0}
+                by_pass[p]["cost"] += entry.get("estimated_cost_usd", 0)
+                by_pass[p]["calls"] += 1
+                by_pass[p]["input_tokens"] += entry.get("input_tokens", 0)
+                by_pass[p]["output_tokens"] += entry.get("output_tokens", 0)
+
+    return {
+        "total_cost_usd": round(total_cost, 4),
+        "total_input_tokens": total_input_tokens,
+        "total_output_tokens": total_output_tokens,
+        "total_calls": total_calls,
+        "by_pass": by_pass,
+    }
+
 @router.get("/chapter-results/{book_number}/{filename}")
 async def get_chapter_results(book_number: int, filename: str):
     book_dir = os.path.join(WORKSPACE, f"book-{book_number}")
