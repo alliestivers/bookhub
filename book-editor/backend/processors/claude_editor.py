@@ -146,10 +146,12 @@ Mechanical only: typos, punctuation, spelling, formatting consistency.
 Fix autonomously. Log every change. Never reword for style.
 Remove any em dashes or en dashes and log each removal.
 
+edits_content must be the ENTIRE corrected chapter text with every fix applied, not a list or summary of fixes. This will replace the chapter file directly, so it must contain the full chapter from start to finish, word for word, with only the mechanical corrections made.
+
 Return JSON:
 {
   "summary": "copyedit summary: X fixes made",
-  "edits_content": "markdown listing every fix made",
+  "edits_content": "the full corrected chapter text, start to finish",
   "flags": [],
   "fixes": ["every fix made, one line each with original and corrected text"],
   "continuity": ""

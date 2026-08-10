@@ -99,6 +99,15 @@ async def run_editing_pass(req: PassRequest):
             with open(edit_path, "w", encoding="utf-8") as f:
                 f.write(output.get("edits_content", ""))
 
+        if req.pass_number in [3, 4] and output.get("edits_content"):
+            backup_dir = os.path.join(book_dir, "backups")
+            os.makedirs(backup_dir, exist_ok=True)
+            backup_path = os.path.join(backup_dir, f"{chapter_file.replace('.md','')}-before-pass{req.pass_number}.md")
+            with open(backup_path, "w", encoding="utf-8") as f:
+                f.write(chapter_text)
+            with open(chapter_path, "w", encoding="utf-8") as f:
+                f.write(output["edits_content"])
+
         if output.get("fixes"):
             decisions_path = os.path.join(logs_dir, "decisions-log.md")
             with open(decisions_path, "a", encoding="utf-8") as f:
@@ -206,6 +215,14 @@ async def _run_all_background(req: PassRequest, all_chapters: list, job_id: str)
                 edit_path = os.path.join(edits_dir, f"{chapter_file.replace('.md','')}-pass{req.pass_number}.md")
                 with open(edit_path, "w", encoding="utf-8") as f:
                     f.write(output.get("edits_content", ""))
+            if req.pass_number in [3, 4] and output.get("edits_content"):
+                backup_dir = os.path.join(book_dir, "backups")
+                os.makedirs(backup_dir, exist_ok=True)
+                backup_path = os.path.join(backup_dir, f"{chapter_file.replace('.md','')}-before-pass{req.pass_number}.md")
+                with open(backup_path, "w", encoding="utf-8") as f:
+                    f.write(chapter_text)
+                with open(chapter_path, "w", encoding="utf-8") as f:
+                    f.write(output["edits_content"])
             if output.get("fixes"):
                 with open(os.path.join(logs_dir, "decisions-log.md"), "a", encoding="utf-8") as f:
                     for fix in output["fixes"]:
