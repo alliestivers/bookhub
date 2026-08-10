@@ -11,6 +11,15 @@ WORKSPACE = os.path.join(os.path.dirname(__file__), "..", "..", "workspace")
 # Shared progress state for run-all jobs
 _run_all_progress = {}
 
+def get_divider_filenames(book_number: int) -> set:
+    manifest_path = os.path.join(WORKSPACE, f"book-{book_number}", "logs", "chapter-manifest.json")
+    if not os.path.exists(manifest_path):
+        return set()
+    import json
+    with open(manifest_path, "r") as f:
+        manifest = json.load(f)
+    return {ch["filename"] for ch in manifest.get("chapters", []) if ch.get("type") == "divider"}
+
 class PassRequest(BaseModel):
     book_number: int = 1
     pass_number: int
@@ -39,8 +48,9 @@ async def run_editing_pass(req: PassRequest):
     elif req.chapter_range:
         targets = req.chapter_range
     else:
+        divider_filenames = get_divider_filenames(req.book_number)
         targets = sorted(os.listdir(chapters_dir))
-        targets = [t for t in targets if t.endswith(".md")]
+        targets = [t for t in targets if t.endswith(".md") and t not in divider_filenames]
 
     results = []
     for chapter_file in targets:
@@ -54,7 +64,8 @@ async def run_editing_pass(req: PassRequest):
 
         prev_text = ""
         next_text = ""
-        all_chapters = sorted([c for c in os.listdir(chapters_dir) if c.endswith(".md")])
+        divider_filenames = get_divider_filenames(req.book_number)
+        all_chapters = sorted([c for c in os.listdir(chapters_dir) if c.endswith(".md") and c not in divider_filenames])
         idx = all_chapters.index(chapter_file) if chapter_file in all_chapters else -1
         if idx > 0:
             with open(os.path.join(chapters_dir, all_chapters[idx - 1]), "r") as f:
@@ -141,7 +152,8 @@ async def run_all_chapters(req: PassRequest, background_tasks: BackgroundTasks):
     chapters_dir = os.path.join(book_dir, "chapters")
     if not os.path.exists(chapters_dir):
         raise HTTPException(status_code=400, detail="No chapters found.")
-    all_chapters = sorted([c for c in os.listdir(chapters_dir) if c.endswith(".md")])
+    divider_filenames = get_divider_filenames(req.book_number)
+    all_chapters = sorted([c for c in os.listdir(chapters_dir) if c.endswith(".md") and c not in divider_filenames])
     if req.skip_existing:
         if req.pass_number == 0:
             check_dir = os.path.join(WORKSPACE, f"book-{req.book_number}", "summaries")

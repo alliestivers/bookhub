@@ -116,11 +116,13 @@ export default function App() {
   const totalFlagCount = reviewGate?.flags?.length || 0;
 
   // Derive display name for selected chapter from manifest
+  const selectedManifestEntry = selectedChapter
+    ? manifestChapters.find(m => m.filename === selectedChapter.filename)
+    : null;
   const selectedDisplayName = selectedChapter
-    ? (manifestChapters.find(m => m.filename === selectedChapter.filename)?.display_name
-        || selectedChapter.display_name
-        || selectedChapter.filename)
+    ? (selectedManifestEntry?.display_name || selectedChapter.display_name || selectedChapter.filename)
     : '';
+  const selectedIsDivider = selectedManifestEntry?.type === 'divider';
 
   return (
     <div className="app">
@@ -160,43 +162,60 @@ export default function App() {
                 chapters={chapters}
                 selected={selectedChapter}
                 completedPasses={completedPasses}
+                dividerFilenames={new Set(manifestChapters.filter(m => m.type === 'divider').map(m => m.filename))}
                 onSelect={(ch) => { setSelectedChapter(ch); loadChapterResults(ch); }}
               />
             </aside>
             <main className="editor-main">
               {selectedChapter ? (
-                <>
-                  <PassRunner
-                    chapter={selectedChapter}
-                    onRunAll={runningAll ? null : runPassOnAll}
-                    runningAll={runningAll}
-                    runAllProgress={runAllProgress}
-                    reviewGateStatus={reviewGateStatus}
-                    onResult={(r) => {
-                      setPassResults(prev => ({ ...prev, [selectedChapter.filename]: r }));
-                      setCompletedPasses(prev => {
-                        const existing = prev[selectedChapter.filename] || [];
-                        const passNum = r.pass;
-                        return { ...prev, [selectedChapter.filename]: [...new Set([...existing, passNum])] };
-                      });
-                      loadStatus();
-                    }}
-                  />
-                  {passResults[selectedChapter.filename] && (
-                    <ResultsViewer
-                      result={passResults[selectedChapter.filename]}
-                      chapterFilename={selectedChapter.filename}
-                      onApplied={handleApplied}
+                selectedIsDivider ? (
+                  <>
+                    <div className="divider-page-notice">
+                      <span className="divider-badge">DIVIDER PAGE</span>
+                      <p>This is a structural divider (part break / section marker), not a chapter. It's excluded from all editorial passes and passes through untouched to the final manuscript. Edit its text below if needed.</p>
+                    </div>
+                    <ChapterEditor
+                      chapter={selectedChapter.filename}
+                      displayName={selectedDisplayName}
+                      pendingApply={pendingApply}
+                      onApplyConsumed={() => setPendingApply(null)}
+                      refreshKey={editorRefreshKey}
                     />
-                  )}
-                  <ChapterEditor
-                    chapter={selectedChapter.filename}
-                    displayName={selectedDisplayName}
-                    pendingApply={pendingApply}
-                    onApplyConsumed={() => setPendingApply(null)}
-                    refreshKey={editorRefreshKey}
-                  />
-                </>
+                  </>
+                ) : (
+                  <>
+                    <PassRunner
+                      chapter={selectedChapter}
+                      onRunAll={runningAll ? null : runPassOnAll}
+                      runningAll={runningAll}
+                      runAllProgress={runAllProgress}
+                      reviewGateStatus={reviewGateStatus}
+                      onResult={(r) => {
+                        setPassResults(prev => ({ ...prev, [selectedChapter.filename]: r }));
+                        setCompletedPasses(prev => {
+                          const existing = prev[selectedChapter.filename] || [];
+                          const passNum = r.pass;
+                          return { ...prev, [selectedChapter.filename]: [...new Set([...existing, passNum])] };
+                        });
+                        loadStatus();
+                      }}
+                    />
+                    {passResults[selectedChapter.filename] && (
+                      <ResultsViewer
+                        result={passResults[selectedChapter.filename]}
+                        chapterFilename={selectedChapter.filename}
+                        onApplied={handleApplied}
+                      />
+                    )}
+                    <ChapterEditor
+                      chapter={selectedChapter.filename}
+                      displayName={selectedDisplayName}
+                      pendingApply={pendingApply}
+                      onApplyConsumed={() => setPendingApply(null)}
+                      refreshKey={editorRefreshKey}
+                    />
+                  </>
+                )
               ) : (
                 <div className="empty-state">
                   <p>Select a chapter from the sidebar to begin.</p>

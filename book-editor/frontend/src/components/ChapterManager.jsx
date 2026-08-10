@@ -6,7 +6,21 @@ export default function ChapterManager({ chapters, onChaptersChange }) {
   const [dragOver, setDragOver] = useState(null);
   const [dragging, setDragging] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [addingDivider, setAddingDivider] = useState(false);
+  const [dividerName, setDividerName] = useState('');
   const fileInputRef = useRef(null);
+
+  async function handleAddDivider() {
+    if (!dividerName.trim()) return;
+    await fetch('/chapters/1/add-divider', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ display_name: dividerName.trim() }),
+    });
+    setDividerName('');
+    setAddingDivider(false);
+    onChaptersChange();
+  }
 
   async function handleRename(filename) {
     if (!editValue.trim() || editValue === editingName) {
@@ -90,9 +104,32 @@ export default function ChapterManager({ chapters, onChaptersChange }) {
     <div className="chapter-manager">
       <div className="chapter-manager-header">
         <h2>Chapter Manager</h2>
-        <button className="btn-primary btn-sm" onClick={() => fileInputRef.current?.click()}>
-          Upload New Chapter
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          {addingDivider ? (
+            <>
+              <input
+                className="cm-name-input"
+                placeholder="e.g. FALL 2007"
+                value={dividerName}
+                autoFocus
+                onChange={e => setDividerName(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') handleAddDivider();
+                  if (e.key === 'Escape') { setAddingDivider(false); setDividerName(''); }
+                }}
+              />
+              <button className="btn-primary btn-sm" onClick={handleAddDivider}>Add</button>
+              <button className="btn-secondary btn-sm" onClick={() => { setAddingDivider(false); setDividerName(''); }}>Cancel</button>
+            </>
+          ) : (
+            <button className="btn-secondary btn-sm" onClick={() => setAddingDivider(true)}>
+              + Add Divider Page
+            </button>
+          )}
+          <button className="btn-primary btn-sm" onClick={() => fileInputRef.current?.click()}>
+            Upload New Chapter
+          </button>
+        </div>
         <input
           ref={fileInputRef}
           type="file"
@@ -101,6 +138,9 @@ export default function ChapterManager({ chapters, onChaptersChange }) {
           onChange={handleUpload}
         />
       </div>
+      <p className="review-gate-subtitle">
+        Divider pages (part breaks, season markers like "FALL 2007") are excluded from editorial passes and pass through untouched. Drag to position them between chapters.
+      </p>
 
       {chapters.length === 0 ? (
         <div className="empty-state"><p>No chapters found. Upload a chapter to get started.</p></div>
@@ -126,6 +166,7 @@ export default function ChapterManager({ chapters, onChaptersChange }) {
               <span className="cm-handle" title="Drag to reorder">⠿</span>
 
               <span className="cm-col-name">
+                {ch.type === 'divider' && <span className="divider-badge">DIVIDER</span>}
                 {editingName === ch.filename ? (
                   <input
                     className="cm-name-input"
@@ -151,9 +192,15 @@ export default function ChapterManager({ chapters, onChaptersChange }) {
               </span>
 
               <span className="cm-col-status">
-                {ch.has_summary && <span className="pass-dot">P0</span>}
-                {ch.has_p1_edit && <span className="pass-dot">P1</span>}
-                {ch.has_p2_edit && <span className="pass-dot">P2</span>}
+                {ch.type === 'divider' ? (
+                  <span className="muted" style={{ fontSize: '0.75rem' }}>skipped in passes</span>
+                ) : (
+                  <>
+                    {ch.has_summary && <span className="pass-dot">P0</span>}
+                    {ch.has_p1_edit && <span className="pass-dot">P1</span>}
+                    {ch.has_p2_edit && <span className="pass-dot">P2</span>}
+                  </>
+                )}
               </span>
 
               <span className="cm-col-actions">

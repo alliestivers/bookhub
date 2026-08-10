@@ -32,7 +32,7 @@ def load_or_create_manifest(book_number: int) -> dict:
         filenames = sorted(f for f in os.listdir(chapters_dir) if f.endswith(".md"))
         for i, filename in enumerate(filenames):
             display_name = os.path.splitext(filename)[0].replace("-", " ").replace("_", " ")
-            chapters.append({"filename": filename, "display_name": display_name, "order": i})
+            chapters.append({"filename": filename, "display_name": display_name, "order": i, "type": "chapter"})
 
     return {"chapters": chapters}
 
@@ -70,6 +70,7 @@ async def list_chapters(book_number: int):
             "filename": filename,
             "display_name": ch.get("display_name", stem),
             "order": ch.get("order", 0),
+            "type": ch.get("type", "chapter"),
             "has_summary": has_summary,
             "has_p1_edit": has_p1_edit,
             "has_p2_edit": has_p2_edit,
@@ -179,6 +180,45 @@ async def save_chapter_text(book_number: int, filename: str, body: SaveBody):
     return {"ok": True}
 
 
+class DividerBody(BaseModel):
+    display_name: str
+
+
+@router.post("/{book_number}/add-divider")
+async def add_divider(book_number: int, body: DividerBody):
+    book_dir = get_book_dir(book_number)
+    chapters_dir = os.path.join(book_dir, "chapters")
+    os.makedirs(chapters_dir, exist_ok=True)
+
+    slug = "".join(c if c.isalnum() else "-" for c in body.display_name.lower()).strip("-")
+    while "--" in slug:
+        slug = slug.replace("--", "-")
+    filename = f"divider-{slug}.md"
+
+    manifest = load_or_create_manifest(book_number)
+    existing_filenames = {ch["filename"] for ch in manifest.get("chapters", [])}
+    suffix = 1
+    base_filename = filename
+    while filename in existing_filenames:
+        suffix += 1
+        filename = f"divider-{slug}-{suffix}.md"
+
+    chapter_path = os.path.join(chapters_dir, filename)
+    with open(chapter_path, "w", encoding="utf-8") as f:
+        f.write(f"# {body.display_name}\n")
+
+    order = len(manifest.get("chapters", []))
+    manifest.setdefault("chapters", []).append({
+        "filename": filename,
+        "display_name": body.display_name,
+        "order": order,
+        "type": "divider",
+    })
+    save_manifest(book_number, manifest)
+
+    return {"ok": True, "filename": filename}
+
+
 @router.post("/{book_number}/upload")
 async def upload_chapter(book_number: int, file: UploadFile = File(...)):
     book_dir = get_book_dir(book_number)
@@ -202,6 +242,7 @@ async def upload_chapter(book_number: int, file: UploadFile = File(...)):
             "filename": filename,
             "display_name": display_name,
             "order": order,
+            "type": "chapter",
         })
         save_manifest(book_number, manifest)
 

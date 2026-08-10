@@ -253,3 +253,9 @@ input[type="file"] { background: var(--surface); border: 1px dashed var(--border
 .apply-error { color: var(--flag); font-size: 0.78rem; }
 
 .apply-hint { color: var(--muted); font-size: 0.78rem; }
+
+/* Divider pages */
+.divider-badge { background: rgba(226,160,64,0.15); border: 1px solid var(--flag); border-radius: 3px; color: var(--flag); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.05em; padding: 0.1rem 0.4rem; margin-right: 0.4rem; white-space: nowrap; }
+.divider-item { opacity: 0.85; }
+.divider-page-notice { background: rgba(226,160,64,0.06); border: 1px solid rgba(226,160,64,0.25); border-radius: var(--r); padding: 1rem; margin-bottom: 1rem; }
+.divider-page-notice p { color: var(--muted); font-size: 0.85rem; margin: 0.5rem 0 0; }
