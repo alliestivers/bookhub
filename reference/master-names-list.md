@@ -71,7 +71,7 @@ Pen name: Allison Stivers
 ## HIGH PRIORITY — INCIDENTS
 - Buddy → COLE (Pike, assault aftermath/Halloween Ch 1/9/15/22)
 - Chip → CODY (Cole's roommate, Ch 15)
-- Patrick → (change; Dave's party/DUI night Ch 72/78)
+- Patrick → SETH (Dave's party/DUI night Ch 72/78)
 - Brent → ALREADY CHANGED (Panama City)
 - Dexter → DYLAN
 - Nate Cullop → NICK CARVER
