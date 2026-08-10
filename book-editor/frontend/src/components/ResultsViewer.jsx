@@ -59,8 +59,9 @@ function parseEditsContent(content) {
   return filtered.length > 0 ? filtered : null;
 }
 
-function SuggestCard({ block, chapterFilename, onApplied }) {
-  const [suggested, setSuggested] = useState(block.suggested);
+function EditCard({ block, chapterFilename, onApplied }) {
+  const isFlag = block.type === 'FLAG';
+  const [suggested, setSuggested] = useState(block.suggested || (isFlag ? block.original : ''));
   const [status, setStatus] = useState('idle'); // idle | applying | applied | error
 
   async function apply() {
@@ -85,9 +86,11 @@ function SuggestCard({ block, chapterFilename, onApplied }) {
     }
   }
 
+  const unchanged = suggested.trim() === block.original.trim();
+
   return (
-    <div className="edit-block edit-block-suggest">
-      <div className="edit-block-type">SUGGEST</div>
+    <div className={`edit-block ${isFlag ? 'edit-block-flag' : 'edit-block-suggest'}`}>
+      <div className="edit-block-type">{block.type}</div>
       {block.original && (
         <div className="edit-original">
           <span className="edit-field-label">ORIGINAL</span>
@@ -95,7 +98,7 @@ function SuggestCard({ block, chapterFilename, onApplied }) {
         </div>
       )}
       <div className="edit-suggested">
-        <span className="edit-field-label">SUGGESTED</span>
+        <span className="edit-field-label">{isFlag ? 'YOUR EDIT' : 'SUGGESTED'}</span>
         <textarea
           className="edit-suggested-input"
           value={suggested}
@@ -110,9 +113,12 @@ function SuggestCard({ block, chapterFilename, onApplied }) {
         </div>
       )}
       <div className="edit-apply-row">
-        <button className="btn-apply" onClick={apply} disabled={status === 'applying' || status === 'applied'}>
+        <button className="btn-apply" onClick={apply} disabled={status === 'applying' || status === 'applied' || unchanged}>
           {status === 'applying' ? 'Applying...' : status === 'applied' ? 'Applied ✓' : 'Apply'}
         </button>
+        {isFlag && unchanged && status !== 'applied' && (
+          <span className="apply-hint">Edit the text above if you want to change this line, then Apply.</span>
+        )}
         {status === 'error' && (
           <span className="apply-error">Could not find the original line in the chapter -- it may have already changed. Edit in the chapter editor instead.</span>
         )}
@@ -134,11 +140,9 @@ function EditsBlock({ content, chapterFilename, onApplied }) {
         if (block.type === 'text') {
           return <pre key={i} className="prose-output edits-prose">{block.content}</pre>;
         }
-        const isSuggest = block.type === 'SUGGEST';
-
-        if (isSuggest && block.original && block.suggested) {
+        if (block.original) {
           return (
-            <SuggestCard
+            <EditCard
               key={i}
               block={block}
               chapterFilename={chapterFilename}
@@ -148,14 +152,8 @@ function EditsBlock({ content, chapterFilename, onApplied }) {
         }
 
         return (
-          <div key={i} className={`edit-block ${isSuggest ? 'edit-block-suggest' : 'edit-block-flag'}`}>
+          <div key={i} className={`edit-block ${block.type === 'SUGGEST' ? 'edit-block-suggest' : 'edit-block-flag'}`}>
             <div className="edit-block-type">{block.type}</div>
-            {block.original && (
-              <div className="edit-original">
-                <span className="edit-field-label">ORIGINAL</span>
-                <span className="edit-field-text edit-original-text">{block.original}</span>
-              </div>
-            )}
             {block.suggested && (
               <div className="edit-suggested">
                 <span className="edit-field-label">SUGGESTED</span>

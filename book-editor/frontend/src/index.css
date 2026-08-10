@@ -251,3 +251,5 @@ input[type="file"] { background: var(--surface); border: 1px dashed var(--border
 .edit-suggested-input:focus { border-color: var(--fix); outline: none; }
 .edit-apply-row { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem; }
 .apply-error { color: var(--flag); font-size: 0.78rem; }
+
+.apply-hint { color: var(--muted); font-size: 0.78rem; }
