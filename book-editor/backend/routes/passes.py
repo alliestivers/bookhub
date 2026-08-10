@@ -92,20 +92,24 @@ async def run_editing_pass(req: PassRequest):
             with open(os.path.join(chapters_dir, all_chapters[idx + 1]), "r") as f:
                 next_text = f.read()[:2000]
 
+        # Only Pass 1 (Developmental + Continuity) actually needs the full
+        # prior-chapter summary and continuity history -- every other pass
+        # was needlessly paying to resend this growing context.
         summaries_text = ""
-        if os.path.exists(summaries_dir):
-            prior_chapters = all_chapters[:idx] if idx >= 0 else all_chapters
-            for s in sorted(prior_chapters):
-                s_path = os.path.join(summaries_dir, s)
-                if os.path.exists(s_path):
-                    with open(s_path, "r") as f:
-                        summaries_text += f"\n\n--- {s} ---\n" + f.read()
-
         continuity_text = ""
-        cont_path = os.path.join(logs_dir, "continuity-log.md")
-        if os.path.exists(cont_path):
-            with open(cont_path, "r", encoding="utf-8") as f:
-                continuity_text = f.read()
+        if req.pass_number == 1:
+            if os.path.exists(summaries_dir):
+                prior_chapters = all_chapters[:idx] if idx >= 0 else all_chapters
+                for s in sorted(prior_chapters):
+                    s_path = os.path.join(summaries_dir, s)
+                    if os.path.exists(s_path):
+                        with open(s_path, "r") as f:
+                            summaries_text += f"\n\n--- {s} ---\n" + f.read()
+
+            cont_path = os.path.join(logs_dir, "continuity-log.md")
+            if os.path.exists(cont_path):
+                with open(cont_path, "r", encoding="utf-8") as f:
+                    continuity_text = f.read()
 
         output = await run_pass(
             pass_number=req.pass_number,
@@ -219,17 +223,18 @@ async def _run_all_background(req: PassRequest, all_chapters: list, job_id: str)
                 with open(os.path.join(chapters_dir, all_chapters[i + 1]), "r") as f:
                     next_text = f.read()[:2000]
             summaries_text = ""
-            if os.path.exists(summaries_dir):
-                for s in all_chapters[:i]:
-                    s_path = os.path.join(summaries_dir, s)
-                    if os.path.exists(s_path):
-                        with open(s_path, "r") as f:
-                            summaries_text += f"\n\n--- {s} ---\n" + f.read()
             continuity_text = ""
-            cont_path = os.path.join(logs_dir, "continuity-log.md")
-            if os.path.exists(cont_path):
-                with open(cont_path, "r", encoding="utf-8") as f:
-                    continuity_text = f.read()
+            if req.pass_number == 1:
+                if os.path.exists(summaries_dir):
+                    for s in all_chapters[:i]:
+                        s_path = os.path.join(summaries_dir, s)
+                        if os.path.exists(s_path):
+                            with open(s_path, "r") as f:
+                                summaries_text += f"\n\n--- {s} ---\n" + f.read()
+                cont_path = os.path.join(logs_dir, "continuity-log.md")
+                if os.path.exists(cont_path):
+                    with open(cont_path, "r", encoding="utf-8") as f:
+                        continuity_text = f.read()
             output = await run_pass(
                 pass_number=req.pass_number,
                 chapter_file=chapter_file,
