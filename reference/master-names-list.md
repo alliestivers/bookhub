@@ -1,5 +1,5 @@
 # BOOK 1 MASTER NAMES LIST
-Pen name: Allison Stivers | Publisher: Weldwood
+Pen name: Allison Stivers
 
 ## KEEP REAL NAME
 - Allie → KEEP (narrator/protagonist)
