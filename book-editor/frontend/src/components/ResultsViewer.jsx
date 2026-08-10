@@ -50,7 +50,13 @@ function parseEditsContent(content) {
     if (remainder) parts.push({ type: 'text', content: remainder });
   }
 
-  return parts.length > 0 ? parts : null;
+  const normalize = (s) => s.trim().toLowerCase().replace(/\s+/g, ' ');
+  const filtered = parts.filter(p => {
+    if (p.type !== 'SUGGEST') return true;
+    return normalize(p.original) !== normalize(p.suggested);
+  });
+
+  return filtered.length > 0 ? filtered : null;
 }
 
 function SuggestCard({ block, chapterFilename, onApplied }) {

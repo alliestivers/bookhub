@@ -129,6 +129,8 @@ WHY: why this needs Allie's decision
 Use **SUGGEST** for changes you recommend. Use **FLAG** for anything that needs Allie's input before changing.
 Do not use numbered labels like S-01 or F-01. Use only **SUGGEST** or **FLAG** as the block header.
 
+CRITICAL: Only output a **SUGGEST** block if SUGGESTED is actually different from ORIGINAL and represents a real improvement you are recommending. If a line is fine as-is, do not create a block for it at all -- do not include it, do not explain why you're leaving it alone, do not write "no change needed." Silence on a line means it's fine. Never output a SUGGEST block where ORIGINAL and SUGGESTED are the same or nearly identical.
+
 Return JSON:
 {
   "summary": "brief line edit summary",
@@ -245,8 +247,32 @@ Return valid JSON only. No em dashes or en dashes anywhere in your response."""
     # Remove em dashes and en dashes that break JSON parsing
     raw = raw.replace('—', '-').replace('–', '-')
 
+    def strip_noop_suggestions(edits_content: str) -> str:
+        """Remove SUGGEST blocks where the suggested text is the same as the original."""
+        if not edits_content or '**SUGGEST**' not in edits_content:
+            return edits_content
+        block_re = re.compile(r'\*\*SUGGEST\*\*.*?(?=\*\*SUGGEST\*\*|\*\*FLAG\*\*|\Z)', re.DOTALL)
+
+        def normalize(s):
+            return re.sub(r'\s+', ' ', s.strip().lower())
+
+        def keep_block(match):
+            block = match.group(0)
+            orig_m = re.search(r'ORIGINAL:\s*(.*?)(?=SUGGESTED:|WHY:|\Z)', block, re.DOTALL)
+            sugg_m = re.search(r'SUGGESTED:\s*(.*?)(?=WHY:|\Z)', block, re.DOTALL)
+            if orig_m and sugg_m and normalize(orig_m.group(1)) == normalize(sugg_m.group(1)):
+                return ''
+            return block
+
+        return block_re.sub(keep_block, edits_content)
+
+    import re
+
     try:
-        return json.loads(raw)
+        parsed = json.loads(raw)
+        if isinstance(parsed, dict) and parsed.get("edits_content"):
+            parsed["edits_content"] = strip_noop_suggestions(parsed["edits_content"])
+        return parsed
     except json.JSONDecodeError as e:
         import re
         print(f"JSON PARSE ERROR: {e}")
@@ -287,7 +313,7 @@ Return valid JSON only. No em dashes or en dashes anywhere in your response."""
 
         return {
             "summary": extract_field(raw, "summary"),
-            "edits_content": edits_content,
+            "edits_content": strip_noop_suggestions(edits_content),
             "flags": extract_array(raw, "flags"),
             "fixes": extract_array(raw, "fixes"),
             "continuity": extract_field(raw, "continuity"),
