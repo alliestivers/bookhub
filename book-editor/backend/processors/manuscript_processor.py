@@ -31,6 +31,21 @@ def split_chapters(text: str) -> list[dict]:
         return [{"filename": "ch-001-full-manuscript.md", "text": text, "heading": "Full Manuscript", "ambiguous": False, "is_kenna": False}]
 
     chapters = []
+
+    # Preserve any content before the first heading (e.g. an opening letter
+    # or front matter without a "# Heading" marker) instead of silently
+    # dropping it.
+    leading_text = text[:matches[0].start()].strip()
+    if leading_text:
+        is_kenna = any(word in leading_text.lower()[:200] for word in ['kenna', 'dear kenna'])
+        chapters.append({
+            "filename": f"ch-000-{'letter-' if is_kenna else ''}opening.md",
+            "text": leading_text,
+            "heading": "Opening",
+            "ambiguous": False,
+            "is_kenna": is_kenna,
+        })
+
     for i, match in enumerate(matches):
         heading = match.group(1).strip()
         start = match.start()
