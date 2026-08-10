@@ -69,8 +69,8 @@ Pen name: Allison Stivers
 - Dave (party house) → (assign separate name)
 
 ## HIGH PRIORITY — INCIDENTS
-- Buddy → (change; Pike, assault aftermath/Halloween Ch 1/9/15/22)
-- Chip → (change; Buddy's roommate, Ch 15)
+- Buddy → COLE (Pike, assault aftermath/Halloween Ch 1/9/15/22)
+- Chip → CODY (Cole's roommate, Ch 15)
 - Patrick → (change; Dave's party/DUI night Ch 72/78)
 - Brent → ALREADY CHANGED (Panama City)
 - Dexter → DYLAN
