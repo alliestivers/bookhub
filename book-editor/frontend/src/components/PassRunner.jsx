@@ -16,7 +16,7 @@ const PASS_DESCRIPTIONS = {
   4: 'KDP and IngramSpark formatting. Final pass before export.',
 };
 
-export default function PassRunner({ chapter, onResult, onRunAll, runningAll, runAllProgress, reviewGateStatus }) {
+export default function PassRunner({ chapter, displayName, onResult, onRunAll, runningAll, runAllProgress, reviewGateStatus }) {
   const [passNumber, setPassNumber] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -50,7 +50,7 @@ export default function PassRunner({ chapter, onResult, onRunAll, runningAll, ru
   return (
     <div className="pass-runner">
       <div className="chapter-title">
-        <h2>{chapter.heading || chapter.filename}</h2>
+        <h2>{displayName || chapter.heading || chapter.filename}</h2>
         <span className="word-count">{chapter.word_count} words</span>
         {chapter.is_kenna && <span className="kenna-badge">LOCKED -- Kenna letter</span>}
       </div>

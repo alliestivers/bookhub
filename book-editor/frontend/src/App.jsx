@@ -163,6 +163,7 @@ export default function App() {
                 selected={selectedChapter}
                 completedPasses={completedPasses}
                 dividerFilenames={new Set(manifestChapters.filter(m => m.type === 'divider').map(m => m.filename))}
+                displayNames={Object.fromEntries(manifestChapters.map(m => [m.filename, m.display_name]))}
                 onSelect={(ch) => { setSelectedChapter(ch); loadChapterResults(ch); }}
               />
             </aside>
@@ -186,6 +187,7 @@ export default function App() {
                   <>
                     <PassRunner
                       chapter={selectedChapter}
+                      displayName={selectedDisplayName}
                       onRunAll={runningAll ? null : runPassOnAll}
                       runningAll={runningAll}
                       runAllProgress={runAllProgress}

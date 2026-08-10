@@ -1,6 +1,6 @@
 const PASS_LABELS = { 0: 'P0', 1: 'P1', 2: 'P2', 3: 'P3', 4: 'P4', 5: 'P5' };
 
-export default function ChapterList({ chapters, selected, onSelect, completedPasses = {}, dividerFilenames = new Set() }) {
+export default function ChapterList({ chapters, selected, onSelect, completedPasses = {}, dividerFilenames = new Set(), displayNames = {} }) {
   return (
     <div className="chapter-list">
       <h3>Chapters <span className="count">{chapters.length}</span></h3>
@@ -15,7 +15,7 @@ export default function ChapterList({ chapters, selected, onSelect, completedPas
             onClick={() => onSelect(ch)}
           >
             {isDivider && <span className="divider-badge">DIVIDER</span>}
-            <span className="ch-heading">{ch.heading || ch.filename}</span>
+            <span className="ch-heading">{displayNames[ch.filename] || ch.heading || ch.filename}</span>
             <span className="ch-meta">
               {ch.word_count} words {ch.is_kenna ? '(LOCKED)' : ''}
             </span>
