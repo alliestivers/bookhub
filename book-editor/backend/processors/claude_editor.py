@@ -188,6 +188,7 @@ async def run_pass(
     prev_chapter_text: str = "",
     next_chapter_text: str = "",
     summaries_text: str = "",
+    continuity_text: str = "",
     book_number: int = 1,
 ) -> dict:
 
@@ -201,6 +202,11 @@ Chapter file: {chapter_file}
     if summaries_text:
         user_message += f"""CHAPTER SUMMARIES (for context -- full history of all prior chapters, read carefully before flagging anything as unconfirmed):
 {summaries_text}
+
+"""
+    if continuity_text:
+        user_message += f"""CONTINUITY LOG (structured facts logged from prior chapters -- ages, dates, locations, physical details, objects. Check this before flagging anything as unconfirmed or inconsistent):
+{continuity_text}
 
 """
     if prev_chapter_text:

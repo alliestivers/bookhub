@@ -72,6 +72,12 @@ async def run_editing_pass(req: PassRequest):
                     with open(s_path, "r") as f:
                         summaries_text += f"\n\n--- {s} ---\n" + f.read()
 
+        continuity_text = ""
+        cont_path = os.path.join(logs_dir, "continuity-log.md")
+        if os.path.exists(cont_path):
+            with open(cont_path, "r", encoding="utf-8") as f:
+                continuity_text = f.read()
+
         output = await run_pass(
             pass_number=req.pass_number,
             chapter_file=chapter_file,
@@ -79,6 +85,7 @@ async def run_editing_pass(req: PassRequest):
             prev_chapter_text=prev_text,
             next_chapter_text=next_text,
             summaries_text=summaries_text,
+            continuity_text=continuity_text,
             book_number=req.book_number,
         )
 
@@ -177,6 +184,11 @@ async def _run_all_background(req: PassRequest, all_chapters: list, job_id: str)
                     if os.path.exists(s_path):
                         with open(s_path, "r") as f:
                             summaries_text += f"\n\n--- {s} ---\n" + f.read()
+            continuity_text = ""
+            cont_path = os.path.join(logs_dir, "continuity-log.md")
+            if os.path.exists(cont_path):
+                with open(cont_path, "r", encoding="utf-8") as f:
+                    continuity_text = f.read()
             output = await run_pass(
                 pass_number=req.pass_number,
                 chapter_file=chapter_file,
@@ -184,6 +196,7 @@ async def _run_all_background(req: PassRequest, all_chapters: list, job_id: str)
                 prev_chapter_text=prev_text,
                 next_chapter_text=next_text,
                 summaries_text=summaries_text,
+                continuity_text=continuity_text,
                 book_number=req.book_number,
             )
             if req.pass_number == 0:
