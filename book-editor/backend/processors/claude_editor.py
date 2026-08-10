@@ -199,8 +199,8 @@ Chapter file: {chapter_file}
 
 """
     if summaries_text:
-        user_message += f"""CHAPTER SUMMARIES (for context):
-{summaries_text[:3000]}
+        user_message += f"""CHAPTER SUMMARIES (for context -- full history of all prior chapters, read carefully before flagging anything as unconfirmed):
+{summaries_text}
 
 """
     if prev_chapter_text:
