@@ -12,6 +12,7 @@ export default defineConfig({
       '/workspace': 'http://127.0.0.1:8001',
       '/review-gate': 'http://127.0.0.1:8001',
       '/chapters': 'http://127.0.0.1:8001',
+      '/reference': 'http://127.0.0.1:8001',
     },
   },
 });

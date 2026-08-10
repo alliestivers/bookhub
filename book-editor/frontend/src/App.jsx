@@ -7,6 +7,7 @@ import StatusPanel from './components/StatusPanel';
 import ReviewGate from './components/ReviewGate';
 import ChapterManager from './components/ChapterManager';
 import ChapterEditor from './components/ChapterEditor';
+import ReferenceManager from './components/ReferenceManager';
 
 export default function App() {
   const [chapters, setChapters] = useState([]);
@@ -133,6 +134,7 @@ export default function App() {
           <button className={view === 'upload' ? 'active' : ''} onClick={() => setView('upload')}>Upload</button>
           <button className={view === 'editor' ? 'active' : ''} onClick={() => setView('editor')}>Editor</button>
           <button className={view === 'chapters' ? 'active' : ''} onClick={() => { setView('chapters'); loadManifestChapters(); }}>Chapters</button>
+          <button className={view === 'reference' ? 'active' : ''} onClick={() => setView('reference')}>Reference</button>
           <button
             className={view === 'review' ? 'active' : ''}
             onClick={() => setView('review')}
@@ -214,6 +216,10 @@ export default function App() {
 
         {view === 'review' && (
           <ReviewGate gate={reviewGate} onUpdate={handleGateUpdate} />
+        )}
+
+        {view === 'reference' && (
+          <ReferenceManager />
         )}
 
         {view === 'logs' && (

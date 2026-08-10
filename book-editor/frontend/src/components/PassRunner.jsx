@@ -94,7 +94,7 @@ export default function PassRunner({ chapter, onResult, onRunAll, runningAll, ru
             </div>
           )}
 
-          {[0, 1].includes(passNumber) && onRunAll && !loading && (
+          {[0, 1, 2, 3, 4].includes(passNumber) && onRunAll && !loading && (
             <>
               <button
                 className="btn-secondary run-btn"
