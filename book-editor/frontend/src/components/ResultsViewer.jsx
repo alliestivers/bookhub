@@ -59,14 +59,28 @@ function parseEditsContent(content) {
   return filtered.length > 0 ? filtered : null;
 }
 
-function normalizeForMatch(s) {
-  // Quote/dash normalization only -- every substitution is 1 character for
-  // 1 character, so positions found in the normalized string line up
-  // exactly with positions in the original string.
-  return s
-    .replace(/[‘’]/g, "'")
-    .replace(/[“”]/g, '"')
-    .replace(/[–—]/g, '-');
+function buildFlexiblePattern(str) {
+  // Build a regex that finds the ORIGINAL text in the real chapter file
+  // even when quote style, dash style, or whitespace/line-wrapping differs
+  // from how the model echoed it back.
+  let escaped = str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  escaped = escaped
+    .replace(/['‘’]/g, "['‘’]")
+    .replace(/["“”]/g, '["“”]')
+    .replace(/[-–—]/g, '[-–—]');
+  escaped = escaped.replace(/\s+/g, '\\s+');
+  return escaped;
+}
+
+function findOriginalInText(text, original) {
+  try {
+    const re = new RegExp(buildFlexiblePattern(original));
+    const match = text.match(re);
+    if (match) return { index: match.index, length: match[0].length };
+  } catch (e) {
+    // fall through to null
+  }
+  return null;
 }
 
 function EditCard({ block, chapterFilename, onApplied }) {
@@ -80,16 +94,13 @@ function EditCard({ block, chapterFilename, onApplied }) {
       const textRes = await fetch(`/chapters/1/${chapterFilename}/text`);
       const { text } = await textRes.json();
 
-      const normText = normalizeForMatch(text);
-      const normOriginal = normalizeForMatch(block.original);
-      const idx = normText.indexOf(normOriginal);
-
-      if (idx === -1) {
+      const found = findOriginalInText(text, block.original);
+      if (!found) {
         setStatus('error');
         return;
       }
 
-      const newText = text.slice(0, idx) + suggested + text.slice(idx + normOriginal.length);
+      const newText = text.slice(0, found.index) + suggested + text.slice(found.index + found.length);
       await fetch(`/chapters/1/${chapterFilename}/save`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
